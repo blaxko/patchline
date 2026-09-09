@@ -2,10 +2,17 @@
 
 import { useCallback, useRef, useState } from "react";
 
+export type EntityMarker = {
+  entityType: string;
+  rawText: string;
+  normalizedValue: string;
+};
+
 export type TranscriptLine = {
   turnOrder: number;
   text: string;
   final: boolean;
+  entities: EntityMarker[];
 };
 
 export type SessionBanner = "reconnecting" | "degraded" | null;
@@ -47,10 +54,29 @@ export function useVoiceSession() {
           setBanner(null);
           break;
         case "partial":
-          setLines((prev) => upsertLine(prev, { turnOrder: msg.turn_order, text: msg.transcript, final: false }));
+          setLines((prev) =>
+            upsertLine(prev, { turnOrder: msg.turn_order, text: msg.transcript, final: false, entities: [] }),
+          );
           break;
         case "final":
-          setLines((prev) => upsertLine(prev, { turnOrder: msg.turn_order, text: msg.transcript, final: true }));
+          setLines((prev) =>
+            upsertLine(prev, { turnOrder: msg.turn_order, text: msg.transcript, final: true, entities: [] }),
+          );
+          break;
+        case "entity_detected":
+          setLines((prev) =>
+            prev.map((line) =>
+              line.turnOrder === msg.turn_order
+                ? {
+                    ...line,
+                    entities: [
+                      ...line.entities,
+                      { entityType: msg.entity_type, rawText: msg.raw_text, normalizedValue: msg.normalized_value },
+                    ],
+                  }
+                : line,
+            ),
+          );
           break;
         case "reconnecting":
           setBanner("reconnecting");

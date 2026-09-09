@@ -118,6 +118,7 @@ model Session {
 
   activeConfig Config      @relation(fields: [activeConfigId], references: [id])
   utterances   Utterance[]
+  entities     Entity[]
 
   @@map("sessions")
 }
@@ -133,9 +134,31 @@ model Utterance {
   endOfTurnConfidence Float    @map("end_of_turn_confidence")
   createdAt           DateTime @default(now()) @map("created_at")
 
-  session Session @relation(fields: [sessionId], references: [id])
+  session  Session  @relation(fields: [sessionId], references: [id])
+  entities Entity[]
 
   @@map("utterances")
+}
+
+model Entity {
+  id                  String    @id
+  sessionId           String    @map("session_id")
+  utteranceId         String    @map("utterance_id")
+  entityType          String    @map("entity_type") // one of the 10 critical types, PRD.md §0
+  rawText             String    @map("raw_text")
+  normalizedValue     String    @map("normalized_value")
+  verificationState   String    @default("unverified") @map("verification_state")
+  // unverified|validating|verified|ambiguous|rejected|confirmed_by_caller|escalated
+  verifiedValue       String?   @map("verified_value")
+  verifiedBy          String?   @map("verified_by") // deterministic_validation|caller_confirmation|human_review
+  startMs             Int       @map("start_ms")
+  endMs               Int       @map("end_ms")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  session   Session   @relation(fields: [sessionId], references: [id])
+  utterance Utterance @relation(fields: [utteranceId], references: [id])
+
+  @@map("entities")
 }
 
 model AuditEvent {

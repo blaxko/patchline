@@ -32,9 +32,31 @@ export function CallUI() {
         {lines
           .sort((a, b) => a.turnOrder - b.turnOrder)
           .map((line) => (
-            <p key={line.turnOrder} style={{ opacity: line.final ? 1 : 0.5, fontStyle: line.final ? "normal" : "italic" }}>
-              {line.text}
-            </p>
+            <div key={line.turnOrder} style={{ marginBottom: 8 }}>
+              <p
+                style={{ opacity: line.final ? 1 : 0.5, fontStyle: line.final ? "normal" : "italic", margin: 0 }}
+              >
+                {line.text}
+              </p>
+              {line.entities.length > 0 && (
+                <p style={{ margin: "2px 0 0", fontSize: 12 }}>
+                  {line.entities.map((e, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        background: "#264",
+                        color: "#cfc",
+                        borderRadius: 4,
+                        padding: "1px 6px",
+                        marginRight: 4,
+                      }}
+                    >
+                      {e.entityType}: {e.normalizedValue}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </div>
           ))}
       </div>
     </div>

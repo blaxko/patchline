@@ -6,6 +6,7 @@ import { env } from "../env.js";
 import { writeAuditEvent } from "../events.js";
 import { AssemblyAIAdapter, type ConfigForAdapter } from "./assemblyaiAdapter.js";
 import { audioBufferStore } from "./audioBuffer.js";
+import { extractEntitiesForUtterance } from "../reliability/extraction/index.js";
 
 type SessionStatus = "connecting" | "active" | "reconnecting" | "degraded" | "completed" | "failed";
 
@@ -78,10 +79,11 @@ async function wireAdapter(state: SessionState): Promise<void> {
 
     const startMs = msg.words[0]?.start ?? 0;
     const endMs = msg.words[msg.words.length - 1]?.end ?? 0;
+    const utteranceId = ulid();
 
     await prisma.utterance.create({
       data: {
-        id: ulid(),
+        id: utteranceId,
         sessionId,
         speaker: "caller",
         text: msg.transcript,
@@ -108,6 +110,26 @@ async function wireAdapter(state: SessionState): Promise<void> {
       start_ms: startMs,
       end_ms: endMs,
     });
+
+    // Sent after "final" so the browser already has a line for this turn_order
+    // to attach markers to (PRD.md §9 Step 4: entity markers shown inline on
+    // the transcript as they're detected).
+    const detectedEntities = await extractEntitiesForUtterance({
+      id: utteranceId,
+      sessionId,
+      text: msg.transcript,
+      startMs,
+      endMs,
+    });
+    for (const entity of detectedEntities) {
+      send(browserWs, {
+        type: "entity_detected",
+        turn_order: msg.turn_order,
+        entity_type: entity.entityType,
+        raw_text: entity.rawText,
+        normalized_value: entity.normalizedValue,
+      });
+    }
   });
 
   adapter.on("termination", async () => {
