@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.next/
+.env
+*.db
+*.db-journal
+/data/audio/*
+!/data/audio/.gitkeep
+.turbo/
+coverage/
