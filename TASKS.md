@@ -3,7 +3,11 @@
 Ordered checklist matching `PRD.md` §9 build steps. Update each item in place as work happens: what was implemented, tests run, test result, manual verification performed, unresolved issues. Do not delete failed-attempt history — append corrections instead, so this file stays an honest record.
 
 - [ ] **Step 1 — Lock the product contract** — *Status: done.* Artifacts: `PRD.md` §0, `DECISIONS.md`. No code.
-- [ ] **Step 2 — Commerce sandbox**
+- [x] **Step 2 — Commerce sandbox**
+  - Implemented: `prisma/schema.prisma` (`customers, orders, products, order_items, tool_call_audit`), `prisma/seed.ts`, `fixtures/commerce/seed.json` (6 customers incl. `Siobhan Mercer` and a digit/letter email trap on Renata Kowalski, 8 orders incl. the 3 confusable pairs from PRD §4, 10 SKUs incl. `WBH-100`/`WBH-100X`, refund eligibility mix of full/partial/ineligible). `services/commerce-sandbox/src/tools/*.ts` — typed, zod-validated functions for all 8 tools (`lookupOrder`, `lookupCustomer`, `checkTracking`, `lookupProduct`, `requestRefund`, `updateShippingAddress`, `createSupportCase`, `escalateToHuman`); Levenshtein-based close-match logic for order/tracking/SKU lookups; `tool_call_audit` row written for every mutating-tool call (`simulated: true` for `request_refund`/`update_shipping_address`, which never write to `orders`). Thin `POST /internal/tools/:name` Fastify wrapper (`src/server.ts`) for manual testing.
+  - Tests: `services/commerce-sandbox/tests/*.test.ts` (vitest, real SQLite test DB via `tests/global-setup.ts` which runs `prisma db push` + the seed script against `prisma/test.db`) — 28 tests covering every seeded lookup success, all 3 confusable-pair structured failures with close-match candidates, invalid-format inputs (no throws), the SKU trailing-character pair, and refund eligibility (full/partial/ineligible/exceeds-eligible/not-found). Result: **28/28 passed**, 2026-09-09. `tsc --noEmit`: clean.
+  - Manual verification: started `services/commerce-sandbox/src/server.ts` locally; `curl localhost:8081/internal/tools/lookup_order -d '{"order_id":"BRK-7109"}'` returned `{"found":false,"reason":"NOT_FOUND","close_matches":[{"order_id":"BRK-71Q9","distance":1}]}`, matching PRD §4's expected structure; `BRK-71Q9` returned the full order record. Confirmed 2026-09-09.
+  - Unresolved: none.
 - [ ] **Step 3 — Live voice session**
 - [ ] **Step 4 — Entity evidence layer**
 - [ ] **Step 5 — Action gating**

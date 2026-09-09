@@ -1,0 +1,161 @@
+{
+  "products": [
+    { "id": "prod_01", "sku": "WBH-100", "name": "Wireless Bluetooth Headphones", "price": 79.99 },
+    { "id": "prod_02", "sku": "WBH-100X", "name": "Wireless Bluetooth Headphones (Pro)", "price": 99.99 },
+    { "id": "prod_03", "sku": "USB-C-CBL", "name": "USB-C Charging Cable 2m", "price": 12.5 },
+    { "id": "prod_04", "sku": "PWR-BANK-20K", "name": "Portable Power Bank 20000mAh", "price": 39.0 },
+    { "id": "prod_05", "sku": "SMART-WATCH-2", "name": "Smart Watch Series 2", "price": 149.0 },
+    { "id": "prod_06", "sku": "YOGA-MAT-PRM", "name": "Premium Yoga Mat", "price": 29.99 },
+    { "id": "prod_07", "sku": "COFFEE-GRND-1KG", "name": "Ground Coffee 1kg", "price": 18.0 },
+    { "id": "prod_08", "sku": "DESK-LAMP-LED", "name": "LED Desk Lamp", "price": 24.5 },
+    { "id": "prod_09", "sku": "BACKPACK-TRVL", "name": "Travel Backpack 40L", "price": 64.0 },
+    { "id": "prod_10", "sku": "PHONE-CASE-13", "name": "Phone Case (Model 13)", "price": 15.0 }
+  ],
+  "customers": [
+    {
+      "id": "cust_01",
+      "name": "Marcus Ibe",
+      "email": "marcus.ibe@example.com",
+      "phone": "+1-555-0101",
+      "orders": [
+        {
+          "id": "ord_01",
+          "orderId": "BRK-71Q9",
+          "status": "delayed",
+          "trackingId": "TRK-88213",
+          "total": 79.99,
+          "refundEligible": "full",
+          "shippingAddress": "12 Maple St, Springfield, IL 62701",
+          "placedAt": "2026-08-01T10:00:00.000Z",
+          "items": [{ "productId": "prod_01", "quantity": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "cust_02",
+      "name": "Siobhan Mercer",
+      "email": "siobhan.mercer@example.com",
+      "phone": "+1-555-0102",
+      "orders": [
+        {
+          "id": "ord_02",
+          "orderId": "ZXA-4B8K",
+          "status": "shipped",
+          "trackingId": "TRK-71190",
+          "total": 39.0,
+          "refundEligible": "partial",
+          "shippingAddress": "88 Birch Ave, Madison, WI 53703",
+          "placedAt": "2026-08-05T14:30:00.000Z",
+          "items": [{ "productId": "prod_04", "quantity": 1 }]
+        },
+        {
+          "id": "ord_03",
+          "orderId": "SMC-2201",
+          "status": "delivered",
+          "trackingId": "TRK-55012",
+          "total": 149.0,
+          "refundEligible": "ineligible",
+          "shippingAddress": "88 Birch Ave, Madison, WI 53703",
+          "placedAt": "2026-06-10T09:00:00.000Z",
+          "items": [{ "productId": "prod_05", "quantity": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "cust_03",
+      "name": "Dana Whitfield",
+      "email": "dana.whitfield@example.com",
+      "phone": "+1-555-0103",
+      "orders": [
+        {
+          "id": "ord_04",
+          "orderId": "NV-15O2",
+          "status": "out_for_delivery",
+          "trackingId": "TRK-33871",
+          "total": 29.99,
+          "refundEligible": "full",
+          "shippingAddress": "4 Cedar Ct, Austin, TX 73301",
+          "placedAt": "2026-08-20T08:15:00.000Z",
+          "items": [{ "productId": "prod_06", "quantity": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "cust_04",
+      "name": "Priya Nair",
+      "email": "priya.nair@example.com",
+      "phone": "+1-555-0104",
+      "orders": [
+        {
+          "id": "ord_05",
+          "orderId": "PNR-9081",
+          "status": "processing",
+          "trackingId": null,
+          "total": 18.0,
+          "refundEligible": "full",
+          "shippingAddress": "200 Elm St, Denver, CO 80202",
+          "placedAt": "2026-08-28T11:00:00.000Z",
+          "items": [{ "productId": "prod_07", "quantity": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "cust_05",
+      "name": "Owen Castillo",
+      "email": "owen.castillo@example.com",
+      "phone": "+1-555-0105",
+      "orders": [
+        {
+          "id": "ord_06",
+          "orderId": "OWC-3345",
+          "status": "delivered",
+          "trackingId": "TRK-90441",
+          "total": 24.5,
+          "refundEligible": "ineligible",
+          "shippingAddress": "77 Pine Rd, Portland, OR 97201",
+          "placedAt": "2026-05-15T16:45:00.000Z",
+          "items": [{ "productId": "prod_08", "quantity": 1 }]
+        },
+        {
+          "id": "ord_07",
+          "orderId": "OWC-3402",
+          "status": "shipped",
+          "trackingId": "TRK-90502",
+          "total": 64.0,
+          "refundEligible": "full",
+          "shippingAddress": "77 Pine Rd, Portland, OR 97201",
+          "placedAt": "2026-08-22T12:00:00.000Z",
+          "items": [{ "productId": "prod_09", "quantity": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "cust_06",
+      "name": "Renata Kowalski",
+      "email": "renata.kowalsk1@example.com",
+      "phone": "+1-555-0106",
+      "orders": [
+        {
+          "id": "ord_08",
+          "orderId": "RNK-7710",
+          "status": "delivered",
+          "trackingId": "TRK-10093",
+          "total": 15.0,
+          "refundEligible": "partial",
+          "shippingAddress": "9 Willow Way, Boise, ID 83701",
+          "placedAt": "2026-07-30T13:20:00.000Z",
+          "items": [{ "productId": "prod_10", "quantity": 1 }]
+        }
+      ]
+    }
+  ],
+  "confusablePairs": {
+    "note": "The second id in each pair does NOT exist in the seeded data and must resolve to a structured not-found/close-match response, per PRD.md §4.",
+    "pairs": [
+      { "real": "BRK-71Q9", "fake": "BRK-7109", "confusion": "Q/1" },
+      { "real": "ZXA-4B8K", "fake": "ZXA-4V8K", "confusion": "B/V" },
+      { "real": "NV-15O2", "fake": "NV-1502", "confusion": "O/0" }
+    ]
+  },
+  "confusableSkuPair": { "real": "WBH-100", "confusableSuffix": "WBH-100X" }
+}

@@ -1,0 +1,79 @@
+// Patchline database schema.
+// Step 2 adds the commerce sandbox tables only (customers, orders, products, tool_call_audit).
+// Reliability tables (sessions, utterances, entities, ...) are added in later build steps per PRD.md §3/§9.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- Commerce sandbox (PRD.md §4, §9 Step 2) ---
+// Sandbox-owned tables, distinct from the reliability tables added in later steps.
+
+model Customer {
+  id        String   @id
+  name      String
+  email     String
+  phone     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  orders Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id             String   @id
+  orderId        String   @unique @map("order_id")
+  customerId     String   @map("customer_id")
+  status         String // processing, shipped, out_for_delivery, delivered, delayed
+  trackingId     String?  @map("tracking_id")
+  total          Float
+  refundEligible String   @map("refund_eligible") // full, partial, ineligible
+  shippingAddress String  @map("shipping_address")
+  placedAt       DateTime @map("placed_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  customer Customer    @relation(fields: [customerId], references: [id])
+  items    OrderItem[]
+
+  @@map("orders")
+}
+
+model Product {
+  id    String @id
+  sku   String @unique
+  name  String
+  price Float
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model OrderItem {
+  id        String @id
+  orderId   String @map("order_id")
+  productId String @map("product_id")
+  quantity  Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model ToolCallAudit {
+  id          String   @id
+  toolName    String   @map("tool_name")
+  args        String // JSON string
+  result      String // JSON string
+  simulated   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("tool_call_audit")
+}
