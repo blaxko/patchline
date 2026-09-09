@@ -56,6 +56,18 @@ Not specified in the brief beyond "fill in." Chosen for hackathon reproducibilit
 
 Per the brief's explicit instruction: Patchline never retrains AssemblyAI or changes model weights. "Improvement" means: a new `configs` row (different `speech_model`, `prompt`/`keyterms_prompt`, `agent_context`, turn-detection settings) is tested via replay against stored regression audio, scored deterministically, and promoted only if it passes the full regression suite. This is stated verbatim in `PRD.md` §Policy and Promotion.
 
+## D9. AssemblyAI temporary streaming token endpoint (verified while implementing Step 3)
+
+`PRD.md` §9 Step 3 and `SECURITY.md` reference "AssemblyAI's documented temporary-token mechanism" without spelling out the endpoint shape. Verified against current docs (Sept 2026) while implementing the Realtime Gateway:
+
+- **Method/URL**: `GET https://streaming.assemblyai.com/v3/token`
+- **Auth**: `Authorization: <ASSEMBLYAI_API_KEY>` header (server-side only, never sent to the browser)
+- **Query params**: `expires_in_seconds` (required, integer 1–600 — the redemption window to open the WS within, not the call duration) and `max_session_duration_seconds` (optional, integer 60–10800, default 10800 — the actual session length ceiling)
+- **Response body**: `{ token: string, expires_in_seconds: number }`
+- The browser then connects to `wss://streaming.assemblyai.com/v3/ws?...&token=<token>` — `token` is a query param alternative to the `Authorization` header, exactly as D1's WS endpoint expects.
+
+Also confirmed while fetching this: the full v3 query-parameter set includes `encoding` (`pcm_s16le` default), `language_codes`, `speaker_labels`, `redact_pii`, `filter_profanity`, `voice_focus`, `inactivity_timeout` — present in the API but not referenced by any Configuration Registry field in this build (§6); no conflict with anything already documented in D1–D4.
+
 ## D8. Regression truth provenance enforcement
 
 Three allowed sources for a regression's `expected_value`: `caller_confirmation` (repair flow), `deterministic_validation` (backend business-rule match, e.g. an SKU that deterministically resolves), `human_review` (operator marks it in Regression Lab). This is enforced at the database layer (`regressions.truth_source` is a non-null enum with no `llm_guess` member — see `PRD.md` §6) so the LLM's own extraction can never become ground truth even by accident.

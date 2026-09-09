@@ -77,3 +77,77 @@ model ToolCallAudit {
 
   @@map("tool_call_audit")
 }
+
+// --- Reliability tables (PRD.md §3, added incrementally per §9 build step) ---
+
+// Minimal Configuration Registry row, needed starting Step 3 so the AssemblyAI
+// Adapter has an active config to read query params from. Full lifecycle
+// (versioning, promotion gate, rollback) is implemented in Step 9.
+model Config {
+  id                            String    @id
+  version                       Int
+  name                          String
+  speechModel                   String    @map("speech_model") // universal-3-5-pro | universal-streaming-english
+  contextMode                   String    @map("context_mode") // none | prompt | keyterms
+  prompt                        String?
+  keytermsPrompt                String?   @map("keyterms_prompt") // JSON string[] or null
+  agentContextEnabled           Boolean   @map("agent_context_enabled")
+  previousContextNTurns         Int       @map("previous_context_n_turns")
+  endOfTurnConfidenceThreshold  Float     @map("end_of_turn_confidence_threshold")
+  formatTurns                   Boolean   @map("format_turns")
+  notes                         String
+  status                        String    @default("draft") // draft|tested|eligible|rejected|active|superseded
+  promotedBy                    String?   @map("promoted_by")
+  promotedAt                    DateTime? @map("promoted_at")
+  createdAt                     DateTime  @default(now()) @map("created_at")
+
+  sessions Session[]
+
+  @@map("configs")
+}
+
+model Session {
+  id              String    @id
+  startedAt       DateTime  @default(now()) @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  status          String // connecting|active|reconnecting|degraded|completed|failed
+  activeConfigId  String    @map("active_config_id")
+  callerLabel     String    @map("caller_label")
+  summary         String?
+  mode            String // live_mic|prerecorded_clip
+
+  activeConfig Config      @relation(fields: [activeConfigId], references: [id])
+  utterances   Utterance[]
+
+  @@map("sessions")
+}
+
+model Utterance {
+  id                  String   @id
+  sessionId           String   @map("session_id")
+  speaker             String // caller|agent
+  text                String
+  startMs             Int      @map("start_ms")
+  endMs               Int      @map("end_ms")
+  turnOrder           Int      @map("turn_order")
+  endOfTurnConfidence Float    @map("end_of_turn_confidence")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@map("utterances")
+}
+
+model AuditEvent {
+  id            String   @id
+  eventType     String   @map("event_type")
+  actor         String
+  resourceType  String   @map("resource_type")
+  resourceId    String   @map("resource_id")
+  payload       String // JSON string
+  correlationId String   @map("correlation_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("audit_events")
+  @@index([correlationId])
+}

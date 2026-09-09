@@ -1,0 +1,47 @@
+[
+  {
+    "id": "cfg_baseline_v1",
+    "version": 1,
+    "name": "Baseline",
+    "speechModel": "universal-streaming-english",
+    "contextMode": "none",
+    "prompt": null,
+    "keytermsPrompt": null,
+    "agentContextEnabled": false,
+    "previousContextNTurns": 5,
+    "endOfTurnConfidenceThreshold": 0.4,
+    "formatTurns": false,
+    "notes": "Cheap, no domain help. Config active when the demo's known-failing clip was captured.",
+    "status": "active"
+  },
+  {
+    "id": "cfg_prompt_v2",
+    "version": 2,
+    "name": "Prompt Context",
+    "speechModel": "universal-3-5-pro",
+    "contextMode": "prompt",
+    "prompt": "Caller is reading an order ID in the format XXX-9999 where X is a letter and 9 is a letter-or-digit. Order IDs use prefixes like BRK, ZXA, NV. Tracking IDs look like TRK-99999. Product SKUs look like ABC-999.",
+    "keytermsPrompt": null,
+    "agentContextEnabled": false,
+    "previousContextNTurns": 5,
+    "endOfTurnConfidenceThreshold": 0.4,
+    "formatTurns": true,
+    "notes": "Free-text prompt describing the commerce ID format.",
+    "status": "draft"
+  },
+  {
+    "id": "cfg_keyterms_v3",
+    "version": 3,
+    "name": "Keyterms + Agent Context",
+    "speechModel": "universal-3-5-pro",
+    "contextMode": "keyterms",
+    "prompt": null,
+    "keytermsPrompt": ["BRK", "ZXA", "NV", "SKU", "tracking number", "order ID"],
+    "agentContextEnabled": true,
+    "previousContextNTurns": 5,
+    "endOfTurnConfidenceThreshold": 0.4,
+    "formatTurns": true,
+    "notes": "Boosts commerce ID prefixes; feeds agent's last reply back as agent_context. This is the candidate the demo promotes.",
+    "status": "draft"
+  }
+]

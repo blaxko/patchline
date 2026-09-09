@@ -31,15 +31,57 @@ interface SeedFile {
   customers: SeedCustomer[];
 }
 
+interface SeedConfig {
+  id: string;
+  version: number;
+  name: string;
+  speechModel: string;
+  contextMode: string;
+  prompt: string | null;
+  keytermsPrompt: string[] | null;
+  agentContextEnabled: boolean;
+  previousContextNTurns: number;
+  endOfTurnConfidenceThreshold: number;
+  formatTurns: boolean;
+  notes: string;
+  status: string;
+}
+
 async function main() {
   const raw = readFileSync(join(__dirname, "..", "fixtures", "commerce", "seed.json"), "utf-8");
   const data: SeedFile = JSON.parse(raw);
+  const configs: SeedConfig[] = JSON.parse(
+    readFileSync(join(__dirname, "..", "fixtures", "configs", "seed.json"), "utf-8"),
+  );
 
+  await prisma.utterance.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.config.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.product.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.toolCallAudit.deleteMany();
+
+  for (const c of configs) {
+    await prisma.config.create({
+      data: {
+        id: c.id,
+        version: c.version,
+        name: c.name,
+        speechModel: c.speechModel,
+        contextMode: c.contextMode,
+        prompt: c.prompt,
+        keytermsPrompt: c.keytermsPrompt ? JSON.stringify(c.keytermsPrompt) : null,
+        agentContextEnabled: c.agentContextEnabled,
+        previousContextNTurns: c.previousContextNTurns,
+        endOfTurnConfidenceThreshold: c.endOfTurnConfidenceThreshold,
+        formatTurns: c.formatTurns,
+        notes: c.notes,
+        status: c.status,
+      },
+    });
+  }
 
   for (const p of data.products) {
     await prisma.product.create({ data: p });
@@ -74,7 +116,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${data.customers.length} customers, ${data.customers.reduce((n, c) => n + c.orders.length, 0)} orders, ${data.products.length} products.`,
+    `Seeded ${configs.length} configs, ${data.customers.length} customers, ${data.customers.reduce((n, c) => n + c.orders.length, 0)} orders, ${data.products.length} products.`,
   );
 }
 
