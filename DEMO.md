@@ -11,30 +11,35 @@ Before starting: click **Reset Demo** in the dashboard header (`POST /api/demo/r
 
 ## Call A — clean success
 
-1. Start a session, clip picker → `Live Mic` or a clean demo clip ("What's the status of order BRK-71Q9?").
+1. Start a session, clip picker → `Live Mic` (no dedicated "clean success" demo clip exists yet as a fixture — a live mic call with a correctly-heard order id demonstrates the same no-repair-needed path).
 2. Transcript is correct; Evidence Timeline shows `entity.detected → entity.verified → action.allowed` with no repair step.
 3. Agent reads back tracking status. No regression created.
 4. Say: *"This is the boring path — most demos stop here."*
 
 ## Call B — live repair (the core mechanism)
 
-1. Start a new session, clip picker → `Demo Clip: BRK-71Q9 (known failure)`.
-2. The clip is transcribed as `BRK-7109` in the mocked-AssemblyAI test suite, which scripts and asserts on this exact string. **On a live, non-mocked AssemblyAI account, this specific clip is not a reliable way to trigger the mis-hearing**: 5 careful live streams of it (real trailing silence, proper turn finalization — see `TASKS.md`'s "Live re-verification" addendum) all came back correctly transcribed as `BRK-71Q9`, meaning `lookup_order` was allowed immediately with no repair triggered. If demoing live with this exact clip, do not assume Call B's block-and-repair sequence will actually occur — it may just succeed first-pass. Treat the mocked test suite as the reliable proof of the repair mechanism, and either accept that a live run of Call B may not need repair, or generate a fresh clip / use a real recorded voice and verify it actually mis-transcribes before demoing it live.
-3. Evidence Timeline updates live:
+**Verified live against a real, non-mocked AssemblyAI account, 5/5 runs** (see `TASKS.md`'s "Live re-verification, round 2" addendum) — this is a real, reproducible sequence, not merely what the mocked test suite scripts.
+
+1. Start a new session, clip picker → `Demo Clip: BRK-71Q9 (known failure)`. This clip is two turns in one file, matching real turn-taking: the caller first states the id as `BRK-7109` (a genuine misstatement, not a mis-hearing of the correct one — AssemblyAI transcribes this turn correctly, exactly as spoken), then after the block-and-repair-question, a second turn repeats just the disputed suffix, spoken as "seven one Q nine."
+2. Evidence Timeline updates live:
    ```
-   Entity detected: BRK-7109
+   Entity detected: order_id BRK-7109
    Validation failed
-   lookup_order blocked  (reason: ENTITY_NOT_FOUND)
-   Repair question spoken: "I heard B-R-K-7-1-0-9 — could you repeat the last four characters?"
-   Caller confirms "71Q9"
+   lookup_order blocked  (reason: ENTITY_AMBIGUOUS — BRK-7109 is a close match to the real BRK-71Q9)
+   Repair question spoken: "I heard B-R-K-7-1-0-9 — could you repeat the last four characters of your order ID?"
+   Caller repeats "seven one Q nine" — AssemblyAI transcribes this as the single token "71q9"
    Entity verified: BRK-71Q9
-   lookup_order allowed
-   Regression #___ created
+   lookup_order allowed — real order record returned
+   Regression created (truth_source: caller_confirmation)
    ```
-4. Say: *"Nothing was silently guessed — the fix required the caller's own confirmation, not the model's confidence."*
-5. Switch to **Regression Lab** — the new regression card is already there with the captured audio clip attached and playable.
+3. Say: *"Nothing was silently guessed — the fix required the caller's own confirmation, not the model's confidence."*
+4. Switch to **Regression Lab** — the new regression card is already there with the captured audio clip attached and playable. Its `observed_value` will be `BRK-7109` and `expected_value` `BRK-71Q9`, matching what was just heard live.
+
+**If you generate a fresh version of this clip** (different TTS voice, different recording): re-verify it actually reproduces this block-and-repair sequence before relying on it live — TTS pronunciation and AssemblyAI's real-time accuracy are not something this build can guarantee for arbitrary new audio, only for the specific clip shipped in `fixtures/audio/demo/`.
 
 ## Call C — proving the system learned
+
+**Not yet live-verified to the same standard as Call B** — the replay table below and step 6-7's "succeeds first-pass under the promoted config" are what the mocked test suite (`demoMode.test.ts`, `replay.test.ts`) scripts and asserts on; whether `cfg_keyterms_v3`'s real `keyterms_prompt` boost actually changes a real AssemblyAI account's transcription of this specific audio, and whether `zxa_post_fix.wav` actually succeeds first-pass under a real promoted config, have not been confirmed live end-to-end. `zxa_post_fix.wav` IS confirmed (3/3 live runs) to reliably block with `ENTITY_AMBIGUOUS` under the baseline config, matching this call's setup premise — the part after promotion is the unverified part.
 
 1. In Regression Lab, open the regression from Call B.
 2. Select candidate configs: `cfg_baseline_v1` (already known-fail, for contrast) and `cfg_keyterms_v3`.

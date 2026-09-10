@@ -109,8 +109,15 @@ async function speakQuestion(question: string, browserWs: WsSocket): Promise<voi
  */
 function reconstructFromSuffix(entityType: CriticalEntityType, observedValue: string, responseText: string): string | null {
   const tokens = responseText.split(/\s+/).filter(Boolean);
-  const mapped = mapTokensToChars(tokens);
-  if (!mapped) return null;
+  // Real AssemblyAI does not reliably transcribe a spoken character-by-
+  // character sequence ("seven one Q nine") as separate space-delimited
+  // words — confirmed live, it normalizes the whole phrase into one
+  // concatenated token ("71q9"), the same way it would format any spoken
+  // digit/letter run. mapTokensToChars() alone (designed for the idealized
+  // one-word-per-character case our mocked tests script) fails on that
+  // shape, so fall back to treating the response as an already-compact
+  // alphanumeric string when the word-by-word mapping doesn't apply.
+  const mapped = mapTokensToChars(tokens) ?? responseText.replace(/[\s-]+/g, "").toUpperCase();
 
   if (entityType === "order_id") {
     const match = observedValue.match(/^([A-Z]{2,3})-/);
