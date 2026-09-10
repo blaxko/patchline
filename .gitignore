@@ -6,5 +6,7 @@ dist/
 *.db-journal
 /data/audio/*
 !/data/audio/.gitkeep
+# Any nested data/audio (e.g. a workspace package's CWD-relative test output)
+**/data/audio/
 .turbo/
 coverage/

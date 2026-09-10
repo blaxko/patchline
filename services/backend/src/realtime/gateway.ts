@@ -220,6 +220,22 @@ async function completeSession(state: SessionState, status: "completed" | "faile
 
 export function registerGateway(app: FastifyInstance): void {
   app.get("/ws/session", { websocket: true }, (socket) => {
+    // Registered synchronously, before any async session setup below —
+    // otherwise a client that starts sending mic audio the instant its WS
+    // opens (as the real Call UI does) can have those very first frames
+    // silently dropped, since a "message" listener attached only after an
+    // await never sees events that arrived before it existed.
+    const earlyAudioFrames: Buffer[] = [];
+    let flushEarlyFrames: ((data: Buffer) => void) | null = null;
+    socket.on("message", (data: Buffer, isBinary: boolean) => {
+      if (!isBinary) return;
+      if (flushEarlyFrames) {
+        flushEarlyFrames(data);
+      } else {
+        earlyAudioFrames.push(data);
+      }
+    });
+
     void (async () => {
       const sessionId = ulid();
       const activeConfig = await getActiveConfig();
@@ -269,12 +285,13 @@ export function registerGateway(app: FastifyInstance): void {
 
       send(socket, { type: "session_id", session_id: sessionId });
 
-      socket.on("message", (data: Buffer, isBinary: boolean) => {
-        if (isBinary) {
-          audioBufferStore.push(sessionId, data);
-          adapter.sendAudio(data);
-        }
-      });
+      const handleAudioFrame = (data: Buffer) => {
+        audioBufferStore.push(sessionId, data);
+        adapter.sendAudio(data);
+      };
+      for (const frame of earlyAudioFrames) handleAudioFrame(frame);
+      earlyAudioFrames.length = 0;
+      flushEarlyFrames = handleAudioFrame;
 
       socket.on("close", async () => {
         if (state.status !== "completed" && state.status !== "failed") {
