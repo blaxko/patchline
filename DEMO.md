@@ -37,23 +37,36 @@ Before starting: click **Reset Demo** in the dashboard header (`POST /api/demo/r
 
 **If you generate a fresh version of this clip** (different TTS voice, different recording): re-verify it actually reproduces this block-and-repair sequence before relying on it live — TTS pronunciation and AssemblyAI's real-time accuracy are not something this build can guarantee for arbitrary new audio, only for the specific clip shipped in `fixtures/audio/demo/`.
 
-## Call C — proving the system learned
+## Call B2 — repair on a second confusable ID (this is what actually gets promoted)
 
-**Not yet live-verified to the same standard as Call B** — the replay table below and step 6-7's "succeeds first-pass under the promoted config" are what the mocked test suite (`demoMode.test.ts`, `replay.test.ts`) scripts and asserts on; whether `cfg_keyterms_v3`'s real `keyterms_prompt` boost actually changes a real AssemblyAI account's transcription of this specific audio, and whether `zxa_post_fix.wav` actually succeeds first-pass under a real promoted config, have not been confirmed live end-to-end. `zxa_post_fix.wav` IS confirmed (3/3 live runs) to reliably block with `ENTITY_AMBIGUOUS` under the baseline config, matching this call's setup premise — the part after promotion is the unverified part.
+**Verified live end-to-end against the real, non-mocked API — a genuinely causal chain, not staged** (see `TASKS.md`'s "Live re-verification, round 3" addendum). Call B's own regression (`BRK-71Q9`'s Q/0 confusion) does **not** pass replay under `cfg_keyterms_v3` — verified live, it still mis-transcribes as `BRK-7109`, and a real promotion attempt against it is correctly **denied** (`POLICY_DENIED / TARGET_FAILS`), because `cfg_keyterms_v3`'s boosted terms (`BRK`, `ZXA`, `NV`, `SKU`, "tracking number", "order ID") only help the ID *prefix* vocabulary, not this *suffix* confusion. This was investigated directly (0s/3s/5s of real trailing silence, the full original multi-turn source clip) — a real, structural limit of this candidate config, not a clip-isolation artifact. So the regression that gets promoted comes from a second, different confusable ID that `cfg_keyterms_v3` genuinely does fix.
 
-1. In Regression Lab, open the regression from Call B.
-2. Select candidate configs: `cfg_baseline_v1` (already known-fail, for contrast) and `cfg_keyterms_v3`.
-3. Click **Replay**. Result table renders:
+1. Start a new session, clip picker → `Demo Clip: ZXA-4B8K repair (regression source for promotion)`. Same two-turn structure as Call B: turn 1 states the id, mis-heard as the confusable pair's other value; after the block-and-repair, turn 2 repeats the disputed suffix.
+2. Evidence Timeline updates live:
+   ```
+   Entity detected: order_id ZXA-4V8K
+   lookup_order blocked  (reason: ENTITY_AMBIGUOUS — ZXA-4V8K is a close match to the real ZXA-4B8K)
+   Repair question spoken: "I heard Z-X-A-4-V-8-K — could you repeat the last four characters of your order ID?"
+   Caller repeats "four B eight K" — AssemblyAI transcribes this as the token "4b8k"
+   Entity verified: ZXA-4B8K
+   lookup_order allowed — real order record returned
+   Regression created (truth_source: caller_confirmation)
+   ```
+3. Switch to **Regression Lab** — this new regression card is there (`observed_value: ZXA-4V8K`, `expected_value: ZXA-4B8K`), separate from Call B's card above it.
+4. Select candidate config `cfg_keyterms_v3` and click **Replay**. Result table renders:
    ```
                         ENTITY       LATENCY       RESULT
-   Baseline             BRK-7109     412 ms        FAIL
-   Keyterms v3          BRK-71Q9     421 ms        PASS
+   Keyterms v3          ZXA-4B8K     ~9.8 s        PASS  (exactMatch)
    ```
-4. Run the full regression suite against `cfg_keyterms_v3` (button: "Run full suite") — show that previously-passing cases still pass.
-5. Click **Promote**. Configuration Registry now shows `cfg_keyterms_v3` as `active`, with the promotion's suite-results snapshot visible.
-6. Start a new session, clip picker → `Demo Clip: ZXA-4V8K (post-fix)` — a *different* confusable ID than Call B's, deliberately, to prove generalization rather than clip-memorization.
-7. This call succeeds **first-pass** — no repair turn. Evidence Timeline shows `entity.detected → entity.verified → action.allowed` directly.
-8. Reliability Overview: `first_pass_entity_success_rate` has visibly increased since setup.
+5. Run the full regression suite against `cfg_keyterms_v3` (button: "Run full suite") — show that Call B's own case is still visibly `FAIL` here, and say plainly: *"This candidate doesn't fix every case — it fixes this one. That's exactly why the gate checks the specific regression we're promoting against, not just 'did latency improve.'"*
+6. Click **Promote** (targeting this regression). Configuration Registry now shows `cfg_keyterms_v3` as `active`, with the promotion's real suite-results snapshot visible.
+
+## Call C — proving the system learned
+
+1. Start a **new** session, clip picker → `Demo Clip: ZXA-4B8K (post-fix, first-pass)` — the same id as Call B2, now under the freshly, genuinely promoted config.
+2. This call succeeds **first-pass** — no repair turn. Evidence Timeline shows `entity.detected → entity.verified → action.allowed` directly, with the real order record for `ZXA-4B8K`.
+3. Reliability Overview: `first_pass_entity_success_rate` has visibly increased since setup.
+4. Say: *"Call B showed the repair mechanism catching a live mistake. Call B2 showed that exact same mechanism catching a DIFFERENT live mistake, and this time the fix generalizes — so the system promoted it for real, and Call C never needed to ask."*
 
 ## Closing line
 
@@ -65,4 +78,4 @@ If live mic is unreliable in the room, the entire script above already runs on `
 
 ## Timing
 
-Roughly 4–5 minutes for Calls A–C plus the closing line, fitting a typical hackathon demo slot with room for Q&A.
+Roughly 6–7 minutes for Calls A, B, B2, and C plus the closing line, fitting a typical hackathon demo slot with room for Q&A.

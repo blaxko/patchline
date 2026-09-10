@@ -43,6 +43,16 @@ describe("extractOrderIds", () => {
     const result = extractOrderIds("my name is Siobhan Mercer and I live at 4 Cedar Court");
     expect(result.length).toBe(0);
   });
+
+  it("extracts an order id when AssemblyAI drops the dash (live transcript: background_noise/interruption_barge_in clips)", () => {
+    const result = extractOrderIds("order brk71q9");
+    expect(result.some((c) => c.normalizedValue === "BRK-71Q9")).toBe(true);
+  });
+
+  it("extracts an order id when AssemblyAI substitutes a space for the dash (live transcript: repeated_value clip)", () => {
+    const result = extractOrderIds("order brk 71q9 that's brk 7129 can you confirm");
+    expect(result.some((c) => c.normalizedValue === "BRK-71Q9")).toBe(true);
+  });
 });
 
 describe("extractTrackingIds", () => {
@@ -127,5 +137,11 @@ describe("extractRulePassEntities", () => {
   it("still proposes a SKU value whose shape doesn't collide with the order-id pattern", () => {
     const result = extractRulePassEntities("the SKU is PWR-BANK-20K");
     expect(result.some((c) => c.entityType === "product_sku" && c.normalizedValue === "PWR-BANK-20K")).toBe(true);
+  });
+
+  it("regression: a dash-dropped order id (live transcript 'order brk71q9') is not also proposed as a competing coupon_code", () => {
+    const result = extractRulePassEntities("order brk71q9");
+    expect(result.some((c) => c.entityType === "order_id" && c.normalizedValue === "BRK-71Q9")).toBe(true);
+    expect(result.some((c) => c.entityType === "coupon_code" && c.normalizedValue === "BRK71Q9")).toBe(false);
   });
 });

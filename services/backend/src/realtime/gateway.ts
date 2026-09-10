@@ -8,7 +8,7 @@ import { AssemblyAIAdapter, type ConfigForAdapter } from "./assemblyaiAdapter.js
 import { getActiveConfig } from "./configMapping.js";
 import { audioBufferStore } from "./audioBuffer.js";
 import { extractEntitiesForUtterance } from "../reliability/extraction/index.js";
-import { maybeAutoProposeToolCalls, executeTool } from "../reliability/autoTrigger.js";
+import { maybeAutoProposeToolCalls, maybeStartNoEntityRepair, executeTool } from "../reliability/autoTrigger.js";
 import { hasPendingRepair, handleRepairTurn, clearPendingRepair } from "../reliability/repair/index.js";
 import { streamWavFile } from "./wavStreamer.js";
 import { resolveDemoClipPath } from "../demo/clips.js";
@@ -133,6 +133,11 @@ async function wireAdapter(state: SessionState): Promise<void> {
         raw_text: entity.rawText,
         normalized_value: entity.normalizedValue,
       });
+    }
+
+    if (detectedEntities.length === 0) {
+      await maybeStartNoEntityRepair(sessionId, utteranceId, msg.transcript, browserWs);
+      return;
     }
 
     const toolResults = await maybeAutoProposeToolCalls(sessionId, detectedEntities, browserWs);

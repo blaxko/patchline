@@ -61,10 +61,12 @@ function buildQueryParams(config: ConfigForAdapter): URLSearchParams {
     params.set("prompt", config.prompt);
   }
   if (config.contextMode === "keyterms" && config.keytermsPrompt) {
+    // The real API rejects repeated keyterms_prompt=X&keyterms_prompt=Y query
+    // params with a 3006 validation error ("Invalid JSON array") — it wants
+    // ONE query param whose value is a JSON-encoded array string. Verified
+    // live against the real endpoint; see DECISIONS.md D2 for the correction.
     const terms: string[] = JSON.parse(config.keytermsPrompt);
-    for (const term of terms) {
-      params.append("keyterms_prompt", term);
-    }
+    params.set("keyterms_prompt", JSON.stringify(terms));
   }
 
   return params;

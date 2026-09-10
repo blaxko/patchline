@@ -53,12 +53,15 @@ function dedupe(candidates: RawCandidate[]): RawCandidate[] {
 
 // --- order_id: [A-Z]{2,3}-[A-Z0-9]{4}, e.g. BRK-71Q9, ZXA-4B8K, NV-15O2 ---
 
-// Dash is required for the "direct" pattern — without it, this would match
-// plain 6-7 letter English words (e.g. "Siobhan", "Mercer") as false-positive
-// order ids. A caller reading an ID aloud without the dash is instead caught
-// by the spoken token-window scan below, which is constrained to a run of
-// short standalone word-tokens rather than an arbitrary word's letters.
-const ORDER_ID_DIRECT_RE = /\b([A-Za-z]{2,3})-([A-Za-z0-9]{4})\b/g;
+// The dash is optional — real AssemblyAI transcripts routinely drop it
+// ("BRK71Q9") or substitute a space ("BRK 71Q9"); see TASKS.md's live
+// adversarial-suite table (background_noise, interruption_barge_in,
+// repeated_value) for the observed transcripts this guards against. Without
+// the dash, this pattern would also match plain 6-7 letter English words
+// (e.g. "Siobhan", "Mercer") as false-positive order ids, so the 4-character
+// suffix must contain at least one digit — every real order id's suffix does
+// (PRD.md's XXX-9999 shape), while a plain word's letters never do.
+const ORDER_ID_DIRECT_RE = /\b([A-Za-z]{2,3})[- ]?((?=[A-Za-z0-9]{4}\b)(?=[A-Za-z0-9]*\d)[A-Za-z0-9]{4})\b/g;
 
 export function extractOrderIds(text: string): RawCandidate[] {
   const direct: RawCandidate[] = [];
@@ -182,7 +185,21 @@ export function extractRulePassEntities(text: string): ExtractedCandidate[] {
     "product_sku",
     extractProductSkus(text).filter((c) => !orderIdValues.has(c.normalizedValue)),
   );
-  push("coupon_code", extractCouponCodes(text));
+
+  // Same collision as product_sku above: a dash-dropped order id (e.g.
+  // "brk71q9") also matches the generic alphanumeric coupon-code shape.
+  // Suppress it as a coupon_code candidate only when the exact same value
+  // was already extracted as an order_id this turn (found live: the
+  // background_noise/interruption_barge_in clips' dash-dropped transcripts
+  // used to be mis-typed as coupon_code with no order_id candidate at all;
+  // now that order_id also matches, both would otherwise fire). Compared
+  // with dashes stripped since a coupon_code's normalizedValue never has
+  // one inserted, while an order_id's always does.
+  const orderIdValuesNoDash = new Set(orderIds.map((c) => c.normalizedValue.replace(/-/g, "")));
+  push(
+    "coupon_code",
+    extractCouponCodes(text).filter((c) => !orderIdValuesNoDash.has(c.normalizedValue.replace(/-/g, ""))),
+  );
   push("email", extractEmails(text));
   push("phone_number", extractPhoneNumbers(text));
 

@@ -27,6 +27,12 @@ const TEMPLATES: Partial<Record<string, (ctx: RepairContext) => string>> = {
     `I heard ${spellOut(ctx.observedValue)} — could you repeat the product code?`,
   "product_sku:ENTITY_NOT_FOUND": (ctx) =>
     `I couldn't find a product matching ${spellOut(ctx.observedValue)} — could you repeat the product code?`,
+  "order_id:NO_ENTITY_EXTRACTED": () =>
+    `I didn't catch your order number — could you repeat it?`,
+  "tracking_id:NO_ENTITY_EXTRACTED": () =>
+    `I didn't catch your tracking number — could you repeat it?`,
+  "product_sku:NO_ENTITY_EXTRACTED": () =>
+    `I didn't catch that product code — could you repeat it?`,
   "refund_amount:MISSING_CONFIRMATION": (ctx) =>
     `Just to confirm, you'd like a refund of $${ctx.observedValue} — is that correct?`,
   "shipping_address:MISSING_CONFIRMATION": () =>

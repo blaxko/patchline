@@ -15,7 +15,8 @@ export type GateReason =
   | "MISSING_CONFIRMATION"
   | "VALUE_CONFLICT"
   | "LOW_EVIDENCE"
-  | "POLICY_DENIED";
+  | "POLICY_DENIED"
+  | "NO_ENTITY_EXTRACTED";
 
 export interface ProposedToolCall {
   sessionId: string;
