@@ -6,6 +6,19 @@ const loginBodySchema = z.object({ password: z.string() });
 
 const PUBLIC_PATHS = new Set(["/api/auth/login", "/ws/session"]);
 
+// Deployed frontend and backend live on different origins (e.g. separate
+// Railway services), which makes this a cross-site request from the
+// cookie's point of view. SameSite=Lax (fine for same-origin local dev,
+// where frontend and backend share http://localhost) silently drops the
+// cookie on cross-site fetch/XHR calls — the login POST would still appear
+// to succeed, but every subsequent /api/* call would 401. SameSite=None
+// requires Secure, which in turn requires HTTPS — true for both platforms'
+// public URLs, never true for local http://localhost, hence the branch.
+function cookieAttributes(): string {
+  const cross = process.env.NODE_ENV === "production";
+  return cross ? "HttpOnly; SameSite=None; Secure; Path=/" : "HttpOnly; SameSite=Lax; Path=/";
+}
+
 /**
  * OPERATOR_PASSWORD -> signed httpOnly session cookie, gating every /api/*
  * route and the /ws/dashboard channel (SECURITY.md "Operator authentication").
@@ -27,15 +40,12 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
 
     const token = createSessionToken(sessionSecret);
-    reply.header(
-      "Set-Cookie",
-      `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200`,
-    );
+    reply.header("Set-Cookie", `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; ${cookieAttributes()}; Max-Age=43200`);
     return reply.send({ ok: true });
   });
 
   app.post("/api/auth/logout", async (_request, reply) => {
-    reply.header("Set-Cookie", `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+    reply.header("Set-Cookie", `${SESSION_COOKIE_NAME}=; ${cookieAttributes()}; Max-Age=0`);
     return reply.send({ ok: true });
   });
 
