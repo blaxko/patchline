@@ -13,7 +13,7 @@ A self-healing reliability layer for production voice agents. Every failed voice
 
 ## Status
 
-Planning phase complete (`PRD.md`, `DECISIONS.md`, `ARCHITECTURE.md`, `SECURITY.md`, `TESTING.md`, `DEMO.md`, `TASKS.md` all internally consistent — see the planning audit at the bottom of `TASKS.md`). Implementation has not started; `TASKS.md` tracks build-step progress once it does.
+All 15 build steps in `PRD.md` §9 are implemented and tested — see `TASKS.md` for per-step detail (what was built, test results, manual verification, and honestly-flagged limitations). Two build-environment limitations apply throughout: no live `ASSEMBLYAI_API_KEY`/`GROQ_API_KEY` was available while building this, so the full reliability pipeline is proven against a mocked AssemblyAI server (per `TESTING.md`'s own CI-determinism design) rather than a live account, and the demo/adversarial audio fixtures are silent placeholders rather than real synthesized speech. The mechanism itself — extraction, gating, repair, regression capture, replay, promotion, the dashboard, and demo mode — is real, tested, and verified live against the running server throughout.
 
 ## Stack (see `DECISIONS.md` for why)
 

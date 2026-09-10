@@ -1,0 +1,19 @@
+{
+  "note": "Same documented limitation as fixtures/audio/adversarial/manifest.json: no GROQ_API_KEY is available in this build environment to synthesize real speech, so these two clips are silent placeholder WAVs of the correct duration/format (PCM16LE mono 16kHz, matching the Adapter's fixed session config). The 'transcript' field is what a human recording (or a real TTS render) of that script would need to produce for the demo to work with a live AssemblyAI account. The streaming mechanism itself (prerecorded_clip mode -> same Adapter code path -> real-time pace) is fully implemented and tested against these placeholder files.",
+  "clips": [
+    {
+      "id": "brk_known_failure",
+      "file": "brk_known_failure.wav",
+      "label": "Demo Clip: BRK-71Q9 (known failure)",
+      "script": "I need the status of order BRK-71Q9.",
+      "role": "DEMO.md Call B — AssemblyAI mishears this as BRK-7109 under cfg_baseline_v1, triggering the repair flow."
+    },
+    {
+      "id": "zxa_post_fix",
+      "file": "zxa_post_fix.wav",
+      "label": "Demo Clip: ZXA-4V8K (post-fix)",
+      "script": "Checking on order ZXA-4V8K.",
+      "role": "DEMO.md Call C — a DIFFERENT confusable id than Call B's, deliberately, to prove generalization once cfg_keyterms_v3 is promoted; should succeed first-pass under the promoted config."
+    }
+  ]
+}

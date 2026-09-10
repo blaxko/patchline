@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDashboardLive } from "../../lib/useDashboardLive";
+import { apiPost } from "../../lib/api";
 
 const LINKS = [
   { href: "/", label: "Reliability Overview" },
@@ -17,6 +19,18 @@ const noop = () => {};
 export function Nav() {
   const pathname = usePathname();
   const { connected } = useDashboardLive(noop);
+  const [resetting, setResetting] = useState(false);
+
+  const resetDemo = async () => {
+    if (!window.confirm("Reset demo state? This clears all sessions, regressions, and promotions.")) return;
+    setResetting(true);
+    try {
+      await apiPost("/api/demo/reset");
+      window.location.reload();
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <nav
@@ -43,9 +57,10 @@ export function Nav() {
           {link.label}
         </Link>
       ))}
-      <span style={{ marginLeft: "auto", color: connected ? "#8f8" : "#f84", fontSize: 11 }}>
-        {connected ? "● live" : "○ reconnecting…"}
-      </span>
+      <button onClick={() => void resetDemo()} disabled={resetting} style={{ marginLeft: "auto" }}>
+        Reset Demo
+      </button>
+      <span style={{ color: connected ? "#8f8" : "#f84", fontSize: 11 }}>{connected ? "● live" : "○ reconnecting…"}</span>
     </nav>
   );
 }

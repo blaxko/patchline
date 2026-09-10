@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { runReplay } from "../reliability/replay/index.js";
 import { promoteConfig, rollbackConfig, PromotionDeniedError } from "../reliability/promotion/index.js";
+import { resetDemo } from "../demo/reset.js";
+import { listDemoClips } from "../demo/clips.js";
 import { prisma } from "../db.js";
 
 const replayBodySchema = z.object({
@@ -81,5 +83,16 @@ export function registerApiRoutes(app: FastifyInstance): void {
       }
       throw err;
     }
+  });
+
+  // PRD.md §9 Step 15: restores the seeded DB + baseline config for a
+  // repeatable judge demo, independent of live mic/network conditions.
+  app.post("/api/demo/reset", async (_request, reply) => {
+    await resetDemo();
+    return reply.send({ ok: true });
+  });
+
+  app.get("/api/demo/clips", async (_request, reply) => {
+    return reply.send({ clips: listDemoClips() });
   });
 }

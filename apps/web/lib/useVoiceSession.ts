@@ -37,15 +37,22 @@ export function useVoiceSession() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const start = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    streamRef.current = stream;
+  const start = useCallback(async (clipId?: string) => {
+    // PRD.md §9 Step 15: a demo clip streams server-side through the same
+    // Adapter code path as live mic input — the browser sends no audio at
+    // all in this mode, so mic capture is skipped entirely.
+    const wsUrl = clipId ? `${BACKEND_WS_URL}?clip=${encodeURIComponent(clipId)}` : BACKEND_WS_URL;
 
-    const audioCtx = new AudioContext({ sampleRate: 16000 });
-    audioCtxRef.current = audioCtx;
-    await audioCtx.audioWorklet.addModule("/pcm-worklet.js");
+    if (!clipId) {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
 
-    const ws = new WebSocket(BACKEND_WS_URL);
+      const audioCtx = new AudioContext({ sampleRate: 16000 });
+      audioCtxRef.current = audioCtx;
+      await audioCtx.audioWorklet.addModule("/pcm-worklet.js");
+    }
+
+    const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";
     wsRef.current = ws;
 
@@ -122,14 +129,16 @@ export function useVoiceSession() {
       }
     };
 
-    const source = audioCtx.createMediaStreamSource(stream);
-    const worklet = new AudioWorkletNode(audioCtx, "pcm-worklet-processor");
-    worklet.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(event.data);
-      }
-    };
-    source.connect(worklet);
+    if (!clipId && streamRef.current && audioCtxRef.current) {
+      const source = audioCtxRef.current.createMediaStreamSource(streamRef.current);
+      const worklet = new AudioWorkletNode(audioCtxRef.current, "pcm-worklet-processor");
+      worklet.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(event.data);
+        }
+      };
+      source.connect(worklet);
+    }
   }, []);
 
   const stop = useCallback(() => {

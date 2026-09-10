@@ -1,9 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useVoiceSession } from "../lib/useVoiceSession";
+
+// PRD.md §9 Step 15: clip picker (Live Mic / two demo clips, matching
+// fixtures/audio/demo/manifest.json). "" means live mic.
+const CLIP_OPTIONS = [
+  { id: "", label: "Live Mic" },
+  { id: "brk_known_failure", label: "Demo Clip: BRK-71Q9 (known failure)" },
+  { id: "zxa_post_fix", label: "Demo Clip: ZXA-4V8K (post-fix)" },
+];
 
 export function CallUI() {
   const { connected, lines, banner, sessionId, repairQuestion, toolActivity, start, stop } = useVoiceSession();
+  const [selectedClip, setSelectedClip] = useState("");
 
   return (
     <div style={{ fontFamily: "monospace", maxWidth: 640, margin: "2rem auto" }}>
@@ -25,9 +35,19 @@ export function CallUI() {
         </div>
       )}
 
+      <div style={{ marginBottom: 8 }}>
+        <select value={selectedClip} onChange={(e) => setSelectedClip(e.target.value)} disabled={connected}>
+          {CLIP_OPTIONS.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div>
         {!connected ? (
-          <button onClick={() => void start()}>Start call</button>
+          <button onClick={() => void start(selectedClip || undefined)}>Start call</button>
         ) : (
           <button onClick={stop}>End call</button>
         )}

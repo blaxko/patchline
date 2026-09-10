@@ -10,6 +10,8 @@ import { audioBufferStore } from "./audioBuffer.js";
 import { extractEntitiesForUtterance } from "../reliability/extraction/index.js";
 import { maybeAutoProposeToolCalls, executeTool } from "../reliability/autoTrigger.js";
 import { hasPendingRepair, handleRepairTurn, clearPendingRepair } from "../reliability/repair/index.js";
+import { streamWavFile } from "./wavStreamer.js";
+import { resolveDemoClipPath } from "../demo/clips.js";
 
 type SessionStatus = "connecting" | "active" | "reconnecting" | "degraded" | "completed" | "failed";
 
@@ -203,7 +205,18 @@ async function wireAdapter(state: SessionState): Promise<void> {
 async function completeSession(state: SessionState, status: "completed" | "failed"): Promise<void> {
   if (state.reconnectTimer) clearTimeout(state.reconnectTimer);
   state.status = status;
-  await prisma.session.update({ where: { id: state.id }, data: { status, endedAt: new Date() } });
+  try {
+    await prisma.session.update({ where: { id: state.id }, data: { status, endedAt: new Date() } });
+  } catch (err) {
+    // The row can legitimately be gone already — e.g. a client disconnects
+    // right as an operator clicks Reset Demo (PRD.md §9 Step 15), which
+    // deletes every session row. Nothing left to mark complete; not an error.
+    if ((err as { code?: string }).code !== "P2025") throw err;
+    audioBufferStore.clear(state.id);
+    clearPendingRepair(state.id);
+    state.adapter.close();
+    return;
+  }
   await writeAuditEvent({
     eventType: "session.completed",
     actor: "system",
@@ -219,7 +232,11 @@ async function completeSession(state: SessionState, status: "completed" | "faile
 }
 
 export function registerGateway(app: FastifyInstance): void {
-  app.get("/ws/session", { websocket: true }, (socket) => {
+  app.get("/ws/session", { websocket: true }, (socket, request) => {
+    // PRD.md §9 Step 15: ?clip=<id> selects prerecorded_clip mode — the demo
+    // clip is streamed through this same Adapter code path (see
+    // wavStreamer.ts) instead of the browser's live mic audio.
+    const clipId = (request.query as { clip?: string } | undefined)?.clip;
     // Registered synchronously, before any async session setup below —
     // otherwise a client that starts sending mic audio the instant its WS
     // opens (as the real Call UI does) can have those very first frames
@@ -246,7 +263,7 @@ export function registerGateway(app: FastifyInstance): void {
           status: "connecting",
           activeConfigId: activeConfig.id,
           callerLabel: `Demo Caller ${sessionId.slice(-4)}`,
-          mode: "live_mic",
+          mode: clipId ? "prerecorded_clip" : "live_mic",
         },
       });
 
@@ -285,13 +302,27 @@ export function registerGateway(app: FastifyInstance): void {
 
       send(socket, { type: "session_id", session_id: sessionId });
 
-      const handleAudioFrame = (data: Buffer) => {
-        audioBufferStore.push(sessionId, data);
-        adapter.sendAudio(data);
-      };
-      for (const frame of earlyAudioFrames) handleAudioFrame(frame);
-      earlyAudioFrames.length = 0;
-      flushEarlyFrames = handleAudioFrame;
+      if (clipId) {
+        const clipPath = resolveDemoClipPath(clipId);
+        if (!clipPath) {
+          send(socket, { type: "failed", reason: `Unknown demo clip: ${clipId}` });
+          socket.close();
+          return;
+        }
+        // Fire-and-forget: streams at real-time pace in the background while
+        // Turn/entity/gate events flow through the normal handlers above.
+        void streamWavFile(adapter, clipPath, (chunk) => audioBufferStore.push(sessionId, chunk)).then(() =>
+          adapter.terminate(),
+        );
+      } else {
+        const handleAudioFrame = (data: Buffer) => {
+          audioBufferStore.push(sessionId, data);
+          adapter.sendAudio(data);
+        };
+        for (const frame of earlyAudioFrames) handleAudioFrame(frame);
+        earlyAudioFrames.length = 0;
+        flushEarlyFrames = handleAudioFrame;
+      }
 
       socket.on("close", async () => {
         if (state.status !== "completed" && state.status !== "failed") {
