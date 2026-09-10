@@ -5,6 +5,7 @@ import { prisma } from "../db.js";
 import { env } from "../env.js";
 import { writeAuditEvent } from "../events.js";
 import { AssemblyAIAdapter, type ConfigForAdapter } from "./assemblyaiAdapter.js";
+import { getActiveConfig } from "./configMapping.js";
 import { audioBufferStore } from "./audioBuffer.js";
 import { extractEntitiesForUtterance } from "../reliability/extraction/index.js";
 import { maybeAutoProposeToolCalls, executeTool } from "../reliability/autoTrigger.js";
@@ -21,22 +22,6 @@ interface SessionState {
   reconnectTimer: NodeJS.Timeout | null;
   reconnecting: boolean;
   hasBegun: boolean;
-}
-
-async function getActiveConfig(): Promise<{ id: string } & ConfigForAdapter> {
-  const config = await prisma.config.findFirst({ where: { status: "active" } });
-  if (!config) {
-    throw new Error("No active config found — did you run `pnpm prisma:seed`?");
-  }
-  return {
-    id: config.id,
-    speechModel: config.speechModel,
-    contextMode: config.contextMode,
-    prompt: config.prompt,
-    keytermsPrompt: config.keytermsPrompt,
-    formatTurns: config.formatTurns,
-    endOfTurnConfidenceThreshold: config.endOfTurnConfidenceThreshold,
-  };
 }
 
 function send(ws: WsSocket, payload: unknown): void {

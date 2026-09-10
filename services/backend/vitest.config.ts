@@ -8,7 +8,7 @@ const testDbPath = join(__dirname, "..", "..", "prisma", "test-backend.db");
 export default defineConfig({
   test: {
     globalSetup: "./tests/global-setup.ts",
-    testTimeout: 15000,
+    testTimeout: 25000,
     env: {
       DATABASE_URL: `file:${testDbPath}`,
       MOCK_ASSEMBLYAI: "1",

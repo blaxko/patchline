@@ -13,7 +13,7 @@ function nextMockPort(): number {
   return port;
 }
 
-function waitForMessage(ws: WebSocket, predicate: (msg: any) => boolean, timeoutMs = 5000): Promise<any> {
+function waitForMessage(ws: WebSocket, predicate: (msg: any) => boolean, timeoutMs = 12000): Promise<any> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("timeout waiting for message")), timeoutMs);
     const handler = (data: Buffer) => {

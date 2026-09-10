@@ -224,6 +224,22 @@ model Regression {
   @@map("regressions")
 }
 
+model ReplayRun {
+  id               String   @id
+  regressionId     String   @map("regression_id")
+  configId         String   @map("config_id")
+  transcript       String
+  extractedValue   String?  @map("extracted_value")
+  exactMatch       Boolean  @map("exact_match")
+  normalizedMatch  Boolean  @map("normalized_match")
+  latencyMs        Int?     @map("latency_ms")
+  transcriptDelta  String   @map("transcript_delta") // JSON string
+  status           String // pass|fail
+  ranAt            DateTime @default(now()) @map("ran_at")
+
+  @@map("replay_runs")
+}
+
 model AuditEvent {
   id            String   @id
   eventType     String   @map("event_type")

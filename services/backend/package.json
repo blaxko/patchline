@@ -15,6 +15,7 @@
     "@fastify/websocket": "^11.0.2",
     "@prisma/client": "^5.22.0",
     "commerce-sandbox": "workspace:*",
+    "evaluation": "workspace:*",
     "fastify": "^5.1.0",
     "schemas": "workspace:*",
     "ulid": "^2.3.0",

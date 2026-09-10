@@ -154,6 +154,18 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  packages/evaluation:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
   packages/schemas:
     devDependencies:
       '@types/node':
@@ -177,6 +189,9 @@ importers:
       commerce-sandbox:
         specifier: workspace:*
         version: link:../commerce-sandbox
+      evaluation:
+        specifier: workspace:*
+        version: link:../../packages/evaluation
       fastify:
         specifier: ^5.1.0
         version: 5.12.3

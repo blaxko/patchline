@@ -10,10 +10,18 @@ export interface MockScript {
   idleAfterTurns?: boolean;
 }
 
-export function startMockAssemblyAIServer(port: number, script: MockScript): { close: () => void } {
+export type ScriptOrFn = MockScript | ((requestUrl: URL) => MockScript);
+
+export function startMockAssemblyAIServer(port: number, scriptOrFn: ScriptOrFn): { close: () => void } {
   const wss = new WebSocketServer({ port });
 
-  wss.on("connection", (ws: WebSocket) => {
+  wss.on("connection", (ws: WebSocket, request) => {
+    // Config-aware tests (Step 8 replay) can vary the scripted transcript
+    // based on the connecting adapter's query params, simulating a candidate
+    // config that actually transcribes better.
+    const requestUrl = new URL(request.url ?? "/", `http://localhost:${port}`);
+    const script = typeof scriptOrFn === "function" ? scriptOrFn(requestUrl) : scriptOrFn;
+
     ws.send(JSON.stringify({ type: "Begin", id: "mock-session", expires_at: Date.now() + 60_000 }));
 
     let i = 0;
