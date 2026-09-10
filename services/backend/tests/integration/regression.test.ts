@@ -90,6 +90,9 @@ describe("Regression Engine — creation from a resolved repair (PRD.md §9 Step
 
     await rm(regression.audioAsset);
     audioBufferStore.clear(sessionId);
+    // Other test files (e.g. promotion.test.ts) scan every regression row in
+    // the shared test DB — clean up so this one doesn't contaminate them.
+    await prisma.regression.delete({ where: { id: regression.id } });
   });
 
   it("fails closed (no regression row) when the audio segment was already evicted from the buffer", async () => {

@@ -1,10 +1,20 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { runReplay } from "../reliability/replay/index.js";
+import { promoteConfig, rollbackConfig, PromotionDeniedError } from "../reliability/promotion/index.js";
 import { prisma } from "../db.js";
 
 const replayBodySchema = z.object({
   config_ids: z.array(z.string()).min(1),
+});
+
+const promoteBodySchema = z.object({
+  actor: z.string().default("operator"),
+  target_regression_id: z.string().optional(),
+});
+
+const rollbackBodySchema = z.object({
+  actor: z.string().default("operator"),
 });
 
 export function registerApiRoutes(app: FastifyInstance): void {
@@ -31,5 +41,45 @@ export function registerApiRoutes(app: FastifyInstance): void {
     }
 
     return reply.send({ regression_id: id, results });
+  });
+
+  // PRD.md §9 Step 9: promotion runs the full regression suite gate before
+  // ever flipping configs.active — a 422 here means "policy denied", never a
+  // 500, so the UI can render the specific reason.
+  app.post("/api/configs/:id/promote", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const parsed = promoteBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "INVALID_BODY", details: parsed.error.flatten() });
+    }
+
+    try {
+      const promotionId = await promoteConfig(id, parsed.data.actor, parsed.data.target_regression_id);
+      const promotion = await prisma.promotion.findUniqueOrThrow({ where: { id: promotionId } });
+      return reply.send(promotion);
+    } catch (err) {
+      if (err instanceof PromotionDeniedError) {
+        return reply.code(422).send({ error: "POLICY_DENIED", reason: err.reason, detail: err.detail });
+      }
+      throw err;
+    }
+  });
+
+  app.post("/api/configs/:id/rollback", async (request, reply) => {
+    const parsed = rollbackBodySchema.safeParse(request.body ?? {});
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "INVALID_BODY", details: parsed.error.flatten() });
+    }
+
+    try {
+      const promotionId = await rollbackConfig(parsed.data.actor);
+      const promotion = await prisma.promotion.findUniqueOrThrow({ where: { id: promotionId } });
+      return reply.send(promotion);
+    } catch (err) {
+      if (err instanceof PromotionDeniedError) {
+        return reply.code(422).send({ error: "POLICY_DENIED", reason: err.reason });
+      }
+      throw err;
+    }
   });
 }

@@ -54,6 +54,14 @@ async function main() {
     readFileSync(join(__dirname, "..", "fixtures", "configs", "seed.json"), "utf-8"),
   );
 
+  // Children before parents (SQLite enforces FK constraints).
+  await prisma.promotion.deleteMany();
+  await prisma.replayRun.deleteMany();
+  await prisma.regression.deleteMany();
+  await prisma.repairEvent.deleteMany();
+  await prisma.toolCall.deleteMany();
+  await prisma.validationResult.deleteMany();
+  await prisma.entity.deleteMany();
   await prisma.utterance.deleteMany();
   await prisma.session.deleteMany();
   await prisma.config.deleteMany();

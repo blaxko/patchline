@@ -31,6 +31,7 @@ describe("Regression Lab — replay against candidate configs (PRD.md §9 Step 8
   let mock: { close: () => void } | null = null;
   let app: Awaited<ReturnType<typeof buildServer>> | null = null;
   let tmpDir: string | null = null;
+  let regressionId: string | null = null;
 
   afterEach(async () => {
     mock?.close();
@@ -38,6 +39,13 @@ describe("Regression Lab — replay against candidate configs (PRD.md §9 Step 8
     if (app) {
       await app.close();
       app = null;
+    }
+    if (regressionId) {
+      // Other test files (e.g. promotion.test.ts) scan every regression row
+      // in the shared test DB — clean up so this one doesn't contaminate them.
+      await prisma.replayRun.deleteMany({ where: { regressionId } });
+      await prisma.regression.delete({ where: { id: regressionId } });
+      regressionId = null;
     }
     if (tmpDir) {
       await rm(tmpDir, { recursive: true, force: true });
@@ -63,7 +71,7 @@ describe("Regression Lab — replay against candidate configs (PRD.md §9 Step 8
     await writeFile(wavPath, pcm16ToWav(pcm));
 
     const config = await prisma.config.findFirstOrThrow({ where: { status: "active" } });
-    const regressionId = ulid();
+    regressionId = ulid();
     await prisma.regression.create({
       data: {
         id: regressionId,

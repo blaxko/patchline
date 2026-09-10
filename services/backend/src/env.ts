@@ -6,4 +6,5 @@ export const env = {
   RECONNECT_GRACE_MS: Number(process.env.RECONNECT_GRACE_MS ?? 10_000),
   AUDIO_BUFFER_RETENTION_MS: Number(process.env.AUDIO_BUFFER_RETENTION_MS ?? 120_000),
   AUDIO_STORAGE_DIR: process.env.AUDIO_STORAGE_DIR ?? "./data/audio",
+  LATENCY_REGRESSION_THRESHOLD: Number(process.env.LATENCY_REGRESSION_THRESHOLD ?? 1.25),
 };

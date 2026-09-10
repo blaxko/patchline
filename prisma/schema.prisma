@@ -240,6 +240,18 @@ model ReplayRun {
   @@map("replay_runs")
 }
 
+model Promotion {
+  id                      String   @id
+  configId                String   @map("config_id")
+  action                  String // promote|rollback
+  previousActiveConfigId  String?  @map("previous_active_config_id")
+  suiteResults            String   @map("suite_results") // JSON string, immutable snapshot at promotion time
+  actor                   String
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  @@map("promotions")
+}
+
 model AuditEvent {
   id            String   @id
   eventType     String   @map("event_type")
