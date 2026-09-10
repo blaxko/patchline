@@ -7,6 +7,7 @@ import { writeAuditEvent } from "../events.js";
 import { AssemblyAIAdapter, type ConfigForAdapter } from "./assemblyaiAdapter.js";
 import { audioBufferStore } from "./audioBuffer.js";
 import { extractEntitiesForUtterance } from "../reliability/extraction/index.js";
+import { maybeAutoProposeToolCalls } from "../reliability/autoTrigger.js";
 
 type SessionStatus = "connecting" | "active" | "reconnecting" | "degraded" | "completed" | "failed";
 
@@ -128,6 +129,16 @@ async function wireAdapter(state: SessionState): Promise<void> {
         entity_type: entity.entityType,
         raw_text: entity.rawText,
         normalized_value: entity.normalizedValue,
+      });
+    }
+
+    const toolResults = await maybeAutoProposeToolCalls(sessionId, detectedEntities);
+    for (const toolResult of toolResults) {
+      send(browserWs, {
+        type: toolResult.allowed ? "action_allowed" : "action_blocked",
+        tool_name: toolResult.toolName,
+        reason: toolResult.reason,
+        result: toolResult.result ?? null,
       });
     }
   });

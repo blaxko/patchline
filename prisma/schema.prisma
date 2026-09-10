@@ -161,6 +161,33 @@ model Entity {
   @@map("entities")
 }
 
+model ToolCall {
+  id           String    @id
+  sessionId    String    @map("session_id")
+  toolName     String    @map("tool_name")
+  proposedArgs String    @map("proposed_args") // JSON string, exactly what the agent proposed
+  finalArgs    String?   @map("final_args") // JSON string, set only if allowed
+  gateResult   String    @map("gate_result") // allowed|blocked
+  gateReason   String?   @map("gate_reason")
+  // ENTITY_NOT_FOUND|ENTITY_AMBIGUOUS|MISSING_CONFIRMATION|VALUE_CONFLICT|LOW_EVIDENCE|POLICY_DENIED|null
+  simulated    Boolean   @default(false)
+  executedAt   DateTime? @map("executed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("tool_calls")
+}
+
+model ValidationResult {
+  id            String   @id
+  entityId      String   @map("entity_id")
+  validatorName String   @map("validator_name") // e.g. order_id_existence, order_id_similarity
+  result        String // match|no_match|ambiguous_candidates
+  candidates    String? // JSON string, for ambiguous_candidates
+  ranAt         DateTime @default(now()) @map("ran_at")
+
+  @@map("validation_results")
+}
+
 model AuditEvent {
   id            String   @id
   eventType     String   @map("event_type")
