@@ -1,4 +1,5 @@
 import { ulid } from "ulid";
+import type { Prisma } from "@prisma/client";
 import { evaluatePromotionGate, computeP95, type RegressionSuiteEntry } from "evaluation";
 import { prisma } from "../../db.js";
 import { env } from "../../env.js";
@@ -67,7 +68,7 @@ export async function promoteConfig(configId: string, actor: string, targetRegre
 
   const promotionId = ulid();
 
-  await prisma.$transaction([
+  const writes: Prisma.PrismaPromise<unknown>[] = [
     prisma.config.update({ where: { id: active.id }, data: { status: "superseded" } }),
     prisma.config.update({
       where: { id: candidate.id },
@@ -83,7 +84,16 @@ export async function promoteConfig(configId: string, actor: string, targetRegre
         actor,
       },
     }),
-  ]);
+  ];
+
+  // PRD.md §2.6: a regression closes once a candidate is promoted AND that
+  // regression's own target case passes under the promoted config.
+  const target = suite.find((s) => s.regressionId === targetId);
+  if (target && target.candidateStatus === "pass") {
+    writes.push(prisma.regression.update({ where: { id: targetId }, data: { status: "closed" } }));
+  }
+
+  await prisma.$transaction(writes);
 
   await writeAuditEvent({
     eventType: "config.promoted",

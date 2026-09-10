@@ -6,7 +6,8 @@ dist/
 *.db-journal
 /data/audio/*
 !/data/audio/.gitkeep
-# Any nested data/audio (e.g. a workspace package's CWD-relative test output)
-**/data/audio/
+# Any nested data/audio (e.g. a workspace package's CWD-relative test output) —
+# excludes contents only, so a stray root-adjacent .gitkeep pattern can't collide.
+**/data/audio/*
 .turbo/
 coverage/

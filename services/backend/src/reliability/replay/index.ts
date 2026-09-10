@@ -110,6 +110,9 @@ export async function runReplay(regressionId: string, configId: string): Promise
     },
   });
 
+  // PRD.md §2.6: draft -> tested once replayed against >=1 regression.
+  await prisma.config.updateMany({ where: { id: configId, status: "draft" }, data: { status: "tested" } });
+
   await writeAuditEvent({
     eventType: "regression.replay_completed",
     actor: "system",

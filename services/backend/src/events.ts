@@ -1,5 +1,12 @@
 import { ulid } from "ulid";
+import { EventEmitter } from "node:events";
 import { prisma } from "./db.js";
+
+// Dashboard WS clients (Step 11) subscribe here to mirror the event catalog
+// 1:1 as it's written, per PRD.md §8 — "a connected dashboard client never
+// polls for state it should have received as a push."
+export const auditEventBus = new EventEmitter();
+auditEventBus.setMaxListeners(100);
 
 // Event catalog per PRD.md §8. correlation_id = session_id for live events,
 // = regression_id for replay/promotion events (added in later steps).
@@ -30,9 +37,10 @@ export async function writeAuditEvent(params: {
   payload: unknown;
   correlationId: string;
 }): Promise<void> {
+  const id = ulid();
   await prisma.auditEvent.create({
     data: {
-      id: ulid(),
+      id,
       eventType: params.eventType,
       actor: params.actor,
       resourceType: params.resourceType,
@@ -40,5 +48,12 @@ export async function writeAuditEvent(params: {
       payload: JSON.stringify(params.payload),
       correlationId: params.correlationId,
     },
+  });
+
+  auditEventBus.emit("event", {
+    id,
+    type: params.eventType,
+    payload: params.payload,
+    correlation_id: params.correlationId,
   });
 }

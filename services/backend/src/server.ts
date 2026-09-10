@@ -1,14 +1,18 @@
 import Fastify from "fastify";
 import websocketPlugin from "@fastify/websocket";
 import { registerGateway } from "./realtime/gateway.js";
+import { registerDashboardChannel } from "./realtime/dashboardChannel.js";
 import { registerApiRoutes } from "./api/routes.js";
+import { registerDashboardRoutes } from "./api/dashboardRoutes.js";
 import { env } from "./env.js";
 
 export async function buildServer() {
   const app = Fastify({ logger: true });
   await app.register(websocketPlugin);
   registerGateway(app);
+  registerDashboardChannel(app);
   registerApiRoutes(app);
+  registerDashboardRoutes(app);
   return app;
 }
 
