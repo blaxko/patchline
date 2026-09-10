@@ -43,6 +43,28 @@ async function resolveLatestEntity(sessionId: string, entityType: string) {
   });
 }
 
+/**
+ * Same as resolveLatestEntity, but first checks whether the caller stated two
+ * different values for this slot in the *same utterance* (e.g. "order BRK-7109,
+ * no wait, BRK-71Q9" both extracted from one turn) — PRD.md §7's VALUE_CONFLICT
+ * reason code, for an adversarial case no other path in this gate produced.
+ */
+async function resolveEntityOrConflict(
+  sessionId: string,
+  entityType: string,
+): Promise<{ conflict: true } | { conflict: false; entity: Awaited<ReturnType<typeof resolveLatestEntity>> }> {
+  const latest = await resolveLatestEntity(sessionId, entityType);
+  if (!latest) return { conflict: false, entity: null };
+
+  const sameUtterance = await prisma.entity.findMany({
+    where: { sessionId, entityType, utteranceId: latest.utteranceId },
+  });
+  const distinctValues = new Set(sameUtterance.map((e) => e.normalizedValue));
+  if (distinctValues.size > 1) return { conflict: true };
+
+  return { conflict: false, entity: latest };
+}
+
 // Once an entity has been through repair (confirmed_by_caller), the value to
 // re-validate is the caller-confirmed one, not the original — possibly
 // mistranscribed — normalized_value, which PRD.md §3 keeps immutable.
@@ -90,7 +112,9 @@ async function evaluateSingleEntity(
   validator: (value: string) => Promise<ValidationOutcome>,
   argName: string,
 ): Promise<Decision> {
-  const entity = await resolveLatestEntity(sessionId, entityType);
+  const resolved = await resolveEntityOrConflict(sessionId, entityType);
+  if (resolved.conflict) return { allowed: false, reason: "VALUE_CONFLICT" };
+  const entity = resolved.entity;
   if (!entity) return { allowed: false, reason: "LOW_EVIDENCE" };
 
   await writeAuditEvent({

@@ -11,3 +11,4 @@ dist/
 **/data/audio/*
 .turbo/
 coverage/
+*.tsbuildinfo

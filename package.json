@@ -7,8 +7,8 @@
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
-    "test": "pnpm -r run test && vitest run tests/integration",
-    "test:regression": "vitest run tests/regression",
+    "test": "pnpm -r run test && vitest run --config vitest.root.config.ts",
+    "test:regression": "vitest run --config vitest.root.config.ts tests/regression",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:seed": "tsx prisma/seed.ts"
@@ -21,6 +21,7 @@
     "prisma": "^5.22.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "ulid": "^2.3.0",
     "vitest": "^2.1.8"
   },
   "packageManager": "pnpm@12.3.4",

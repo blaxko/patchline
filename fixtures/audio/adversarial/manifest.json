@@ -1,0 +1,126 @@
+{
+  "note": "PRD.md §9 Step 14 leaves the exact synthetic-audio method to the implementer ('any reasonable synthetic method satisfies this step as long as fixtures are labeled and reproducible'). No GROQ_API_KEY is available in this build environment to actually render TTS audio, so each fixture's 'transcript' field stands in for what AssemblyAI would have returned for that spoken condition — the same mocked-AssemblyAI-transcript technique already used by every other test in this repo (see TESTING.md 'CI determinism'). The 'clip' field names where a real synthesized .wav would live once one is generated; see TASKS.md Step 14 for this documented limitation.",
+  "fixtures": [
+    {
+      "id": "fast_speech",
+      "clip": "fast_speech.wav",
+      "category": "fast speech",
+      "transcript": "yeah I need the status of order BRK-71Q9 right now please",
+      "entity_type": "order_id",
+      "expected_value": "BRK-71Q9",
+      "expected_gate_reason": null,
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": true
+    },
+    {
+      "id": "background_noise",
+      "clip": "background_noise.wav",
+      "category": "background noise",
+      "transcript": "order BRK-71Q9",
+      "end_of_turn_confidence": 0.32,
+      "entity_type": "order_id",
+      "expected_value": "BRK-71Q9",
+      "expected_gate_reason": null,
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": true,
+      "note": "Low end_of_turn_confidence must not, by itself, suppress extraction/gating — the Action Gate has no confidence-based path (PRD.md §7); a genuinely garbled utterance instead fails naturally at extraction (no entity found -> LOW_EVIDENCE), not via a confidence check."
+    },
+    {
+      "id": "spelling_correction_mid_utterance",
+      "clip": "spelling_correction.wav",
+      "category": "spelling correction mid-utterance / VALUE_CONFLICT",
+      "transcript": "order BRK-7109 no wait I mean BRK-71Q9",
+      "entity_type": "order_id",
+      "expected_value": null,
+      "expected_gate_reason": "VALUE_CONFLICT",
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": false
+    },
+    {
+      "id": "o_zero_confusion",
+      "clip": "o_zero_confusion.wav",
+      "category": "O/0 confusion",
+      "transcript": "checking on order NV-1502",
+      "entity_type": "order_id",
+      "expected_value": null,
+      "expected_gate_reason": "ENTITY_AMBIGUOUS",
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": false,
+      "expected_close_match": "NV-15O2"
+    },
+    {
+      "id": "b_v_confusion",
+      "clip": "b_v_confusion.wav",
+      "category": "B/V confusion",
+      "transcript": "status of order ZXA-4V8K",
+      "entity_type": "order_id",
+      "expected_value": null,
+      "expected_gate_reason": "ENTITY_AMBIGUOUS",
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": false,
+      "expected_close_match": "ZXA-4B8K"
+    },
+    {
+      "id": "repeated_value",
+      "clip": "repeated_value.wav",
+      "category": "entity repeated with the same value",
+      "transcript": "order BRK-71Q9, that's BRK-71Q9, can you confirm",
+      "entity_type": "order_id",
+      "expected_value": "BRK-71Q9",
+      "expected_gate_reason": null,
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": true,
+      "note": "Repeating the SAME value must not be mistaken for VALUE_CONFLICT (which requires two DIFFERENT values)."
+    },
+    {
+      "id": "interruption_barge_in",
+      "clip": "interruption_barge_in.wav",
+      "category": "interruption / barge-in",
+      "partial_transcript": "order BRK-71",
+      "transcript": "order BRK-71Q9",
+      "entity_type": "order_id",
+      "expected_value": "BRK-71Q9",
+      "expected_gate_reason": null,
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": true,
+      "note": "A cut-off partial turn (never end_of_turn) must never create an entity by itself — only the final, complete turn does."
+    },
+    {
+      "id": "caller_changes_mind_mid_entity",
+      "clip": "caller_changes_mind.wav",
+      "category": "caller changes mind mid-entity",
+      "transcript": "I need a refund for order BRK-71Q9 actually no I mean ZXA-4B8K",
+      "entity_type": "order_id",
+      "expected_value": null,
+      "expected_gate_reason": "VALUE_CONFLICT",
+      "expected_tool_called": "lookup_order",
+      "expected_allowed": false
+    },
+    {
+      "id": "uncommon_name_spelling",
+      "clip": "uncommon_name_spelling.wav",
+      "category": "uncommon name spelling",
+      "transcript": "hi, this is Siobhan Mercer calling",
+      "entity_type": "customer_name",
+      "extraction_mechanism": "llm_fallback (mocked — no live GROQ_API_KEY in this environment)",
+      "expected_value": "Siobhan Mercer",
+      "expected_gate_reason": null,
+      "expected_tool_called": "lookup_customer",
+      "expected_allowed": true
+    },
+    {
+      "id": "amount_ambiguity_18_80",
+      "clip": "amount_ambiguity_18_80.wav",
+      "category": "18/80 amount ambiguity",
+      "transcript": "I'd like a refund of eighteen dollars please",
+      "entity_type": "refund_amount",
+      "extraction_mechanism": "llm_fallback (mocked — no live GROQ_API_KEY in this environment)",
+      "misheard_value": "18.00",
+      "actual_order_total": 79.99,
+      "expected_gate_reason": "MISSING_CONFIRMATION",
+      "expected_tool_called": "request_refund",
+      "expected_allowed": false,
+      "note": "The order's real eligible amount is $79.99. A misheard '18' vs. the real amount must be caught by the Action Gate (amount doesn't match the order), never silently approved."
+    }
+  ]
+}
