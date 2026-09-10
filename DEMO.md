@@ -19,7 +19,7 @@ Before starting: click **Reset Demo** in the dashboard header (`POST /api/demo/r
 ## Call B — live repair (the core mechanism)
 
 1. Start a new session, clip picker → `Demo Clip: BRK-71Q9 (known failure)`.
-2. The clip is transcribed as `BRK-7109` (the seeded confusable pair, `PRD.md` §4) — this is what the mocked-AssemblyAI test suite scripts and asserts on. Running this same clip against a **live, non-mocked** AssemblyAI account may narrate a different specific wrong id instead (confirmed `BRK-7129` with this build's TTS voice, see `TASKS.md`'s "Real audio generation" addendum) — the mechanism is identical either way: an unverified wrong id blocks the tool call and triggers repair. If demoing live, say whatever AssemblyAI actually returns rather than insisting on "BRK-7109."
+2. The clip is transcribed as `BRK-7109` in the mocked-AssemblyAI test suite, which scripts and asserts on this exact string. **On a live, non-mocked AssemblyAI account, this specific clip is not a reliable way to trigger the mis-hearing**: 5 careful live streams of it (real trailing silence, proper turn finalization — see `TASKS.md`'s "Live re-verification" addendum) all came back correctly transcribed as `BRK-71Q9`, meaning `lookup_order` was allowed immediately with no repair triggered. If demoing live with this exact clip, do not assume Call B's block-and-repair sequence will actually occur — it may just succeed first-pass. Treat the mocked test suite as the reliable proof of the repair mechanism, and either accept that a live run of Call B may not need repair, or generate a fresh clip / use a real recorded voice and verify it actually mis-transcribes before demoing it live.
 3. Evidence Timeline updates live:
    ```
    Entity detected: BRK-7109
