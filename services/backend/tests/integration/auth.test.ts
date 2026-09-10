@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { buildServer } from "../../src/server.js";
+import { buildServer } from "../../src/app.js";
 
 // Exercises the real onRequest hook, which is normally a no-op under
 // NODE_ENV=test (see auth/routes.ts) — deliberately overridden for just this

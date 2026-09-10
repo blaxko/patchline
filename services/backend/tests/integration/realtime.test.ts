@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { WebSocket } from "ws";
-import { buildServer } from "../../src/server.js";
+import { buildServer } from "../../src/app.js";
 import { prisma } from "../../src/db.js";
 import { startMockAssemblyAIServer } from "../mocks/assemblyaiWsServer.js";
 import type { AaiTurnMessage } from "../../src/realtime/assemblyaiAdapter.js";

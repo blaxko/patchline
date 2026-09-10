@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ulid } from "ulid";
 import { prisma } from "../../src/db.js";
-import { buildServer } from "../../src/server.js";
+import { buildServer } from "../../src/app.js";
 import { startMockAssemblyAIServer } from "../mocks/assemblyaiWsServer.js";
 import { pcm16ToWav } from "../../src/reliability/regression/wav.js";
 import type { AaiTurnMessage } from "../../src/realtime/assemblyaiAdapter.js";

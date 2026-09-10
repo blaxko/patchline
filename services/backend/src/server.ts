@@ -1,40 +1,42 @@
-import Fastify from "fastify";
-import websocketPlugin from "@fastify/websocket";
-import corsPlugin from "@fastify/cors";
-import { registerGateway } from "./realtime/gateway.js";
-import { registerDashboardChannel } from "./realtime/dashboardChannel.js";
-import { registerApiRoutes } from "./api/routes.js";
-import { registerDashboardRoutes } from "./api/dashboardRoutes.js";
-import { registerAuthRoutes } from "./auth/routes.js";
-import { cleanupExpiredAudio } from "./reliability/regression/retention.js";
-import { env } from "./env.js";
-
-export async function buildServer() {
-  const app = Fastify({ logger: true });
-  // Credentialed cross-origin requests (the dashboard's session cookie) need
-  // an explicit allowed origin — "*" is rejected by browsers alongside
-  // credentials:"include". Frontend origin only, not a public API.
-  await app.register(corsPlugin, {
-    origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
-    credentials: true,
-  });
-  await app.register(websocketPlugin);
-  registerAuthRoutes(app);
-  registerGateway(app);
-  registerDashboardChannel(app);
-  registerApiRoutes(app);
-  registerDashboardRoutes(app);
-  return app;
-}
+// This file is the real process entrypoint (`tsx services/backend/src/server.ts`).
+// It deliberately has NO static imports beyond loadEnvFile.ts (which has no
+// dependency on @prisma/client or anything else that could mutate
+// process.env before we get a chance to). Everything else is imported
+// dynamically, after loadEnvFileDefaults() has already run — see that
+// function's own comment for exactly why this ordering matters.
+import { loadEnvFileDefaults } from "./loadEnvFile.js";
 
 if (process.argv[1] && process.argv[1].endsWith("server.ts")) {
+  loadEnvFileDefaults();
+
+  const { env } = await import("./env.js");
+
+  // Unmissable at boot, regardless of the fix above — per the same "never
+  // silently run in the wrong mode" principle, stated as loudly as possible
+  // as a second, independent line of defense.
+  if (env.MOCK_ASSEMBLYAI) {
+    console.log(
+      `[patchline] AssemblyAI mode: MOCK (MOCK_ASSEMBLYAI=1, connecting to ${env.MOCK_ASSEMBLYAI_WS_URL}) — set MOCK_ASSEMBLYAI=0 explicitly to use the real AssemblyAI API.`,
+    );
+  } else if (!env.ASSEMBLYAI_API_KEY) {
+    console.error(
+      "[patchline] Refusing to start: MOCK_ASSEMBLYAI is off (real mode) but ASSEMBLYAI_API_KEY is empty. " +
+        "Set ASSEMBLYAI_API_KEY, or set MOCK_ASSEMBLYAI=1 to run against the mock server instead.",
+    );
+    process.exit(1);
+  } else {
+    console.log("[patchline] AssemblyAI mode: LIVE (real API, ASSEMBLYAI_API_KEY configured).");
+  }
+
   // SECURITY.md: no default password shipped — refuse to boot in production
   // without both set, rather than silently running unauthenticated.
   if (process.env.NODE_ENV === "production" && (!process.env.OPERATOR_PASSWORD || !process.env.SESSION_SECRET)) {
-    // eslint-disable-next-line no-console
-    console.error("Refusing to start: OPERATOR_PASSWORD and SESSION_SECRET must both be set in production.");
+    console.error("[patchline] Refusing to start: OPERATOR_PASSWORD and SESSION_SECRET must both be set in production.");
     process.exit(1);
   }
+
+  const { buildServer } = await import("./app.js");
+  const { cleanupExpiredAudio } = await import("./reliability/regression/retention.js");
 
   const app = await buildServer();
   app.listen({ port: env.BACKEND_PORT, host: "0.0.0.0" }).catch((err) => {

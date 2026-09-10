@@ -295,7 +295,14 @@ export function registerGateway(app: FastifyInstance): void {
       } catch (err) {
         state.status = "failed";
         await prisma.session.update({ where: { id: sessionId }, data: { status: "failed" } });
-        send(socket, { type: "failed", reason: (err as Error).message });
+        // Some connection failures (e.g. a raw ECONNREFUSED against the mock
+        // WS URL) produce an Error with an empty .message, which left the
+        // operator with zero diagnostic information ({"reason":""}) — always
+        // fall back to something actionable, and log the raw error server-side.
+        const error = err as Error & { code?: string };
+        const reason = error?.message || error?.code || String(error) || "Unknown connection error";
+        app.log.error({ err }, "AssemblyAI connect failed");
+        send(socket, { type: "failed", reason });
         socket.close();
         return;
       }

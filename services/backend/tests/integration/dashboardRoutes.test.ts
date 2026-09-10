@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildServer } from "../../src/server.js";
+import { buildServer } from "../../src/app.js";
 import { prisma } from "../../src/db.js";
 
 describe("Dashboard REST endpoints (PRD.md §9 Step 11)", () => {
