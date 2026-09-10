@@ -17,6 +17,12 @@ export type TranscriptLine = {
 
 export type SessionBanner = "reconnecting" | "degraded" | null;
 
+export type ToolActivity = {
+  toolName: string;
+  allowed: boolean;
+  reason: string | null;
+};
+
 const BACKEND_WS_URL = process.env.NEXT_PUBLIC_BACKEND_WS_URL ?? "ws://localhost:8080/ws/session";
 
 export function useVoiceSession() {
@@ -24,6 +30,8 @@ export function useVoiceSession() {
   const [lines, setLines] = useState<TranscriptLine[]>([]);
   const [banner, setBanner] = useState<SessionBanner>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [repairQuestion, setRepairQuestion] = useState<string | null>(null);
+  const [toolActivity, setToolActivity] = useState<ToolActivity[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -78,6 +86,27 @@ export function useVoiceSession() {
             ),
           );
           break;
+        case "action_allowed":
+        case "action_blocked":
+          setToolActivity((prev) => [
+            ...prev,
+            { toolName: msg.tool_name, allowed: msg.type === "action_allowed", reason: msg.reason ?? null },
+          ]);
+          if (msg.type === "action_allowed") setRepairQuestion(null);
+          break;
+        case "repair_question":
+          setRepairQuestion(msg.text);
+          break;
+        case "repair_audio": {
+          const bytes = Uint8Array.from(atob(msg.audio_base64), (c) => c.charCodeAt(0));
+          const blob = new Blob([bytes], { type: `audio/${msg.format ?? "wav"}` });
+          const audio = new Audio(URL.createObjectURL(blob));
+          void audio.play().catch(() => {});
+          break;
+        }
+        case "escalated":
+          setRepairQuestion(null);
+          break;
         case "reconnecting":
           setBanner("reconnecting");
           break;
@@ -113,7 +142,7 @@ export function useVoiceSession() {
     setConnected(false);
   }, []);
 
-  return { connected, lines, banner, sessionId, start, stop };
+  return { connected, lines, banner, sessionId, repairQuestion, toolActivity, start, stop };
 }
 
 function upsertLine(prev: TranscriptLine[], next: TranscriptLine): TranscriptLine[] {

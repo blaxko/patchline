@@ -188,6 +188,22 @@ model ValidationResult {
   @@map("validation_results")
 }
 
+model RepairEvent {
+  id            String   @id
+  sessionId     String   @map("session_id")
+  entityId      String   @map("entity_id")
+  question      String
+  response      String?
+  resolvedValue String?  @map("resolved_value")
+  attemptNumber Int      @map("attempt_number")
+  turnCount     Int      @map("turn_count")
+  latencyMs     Int      @map("latency_ms")
+  outcome       String // resolved|unresolved|escalated
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("repair_events")
+}
+
 model AuditEvent {
   id            String   @id
   eventType     String   @map("event_type")

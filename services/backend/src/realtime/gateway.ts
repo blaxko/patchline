@@ -7,7 +7,8 @@ import { writeAuditEvent } from "../events.js";
 import { AssemblyAIAdapter, type ConfigForAdapter } from "./assemblyaiAdapter.js";
 import { audioBufferStore } from "./audioBuffer.js";
 import { extractEntitiesForUtterance } from "../reliability/extraction/index.js";
-import { maybeAutoProposeToolCalls } from "../reliability/autoTrigger.js";
+import { maybeAutoProposeToolCalls, executeTool } from "../reliability/autoTrigger.js";
+import { hasPendingRepair, handleRepairTurn, clearPendingRepair } from "../reliability/repair/index.js";
 
 type SessionStatus = "connecting" | "active" | "reconnecting" | "degraded" | "completed" | "failed";
 
@@ -112,6 +113,21 @@ async function wireAdapter(state: SessionState): Promise<void> {
       end_ms: endMs,
     });
 
+    // A turn while a repair question is outstanding is the caller's answer to
+    // it, not a fresh statement to extract/gate from scratch (PRD.md §2.4).
+    if (hasPendingRepair(sessionId)) {
+      const repairResult = await handleRepairTurn(sessionId, msg.transcript, browserWs, executeTool);
+      if (repairResult.toolResult) {
+        send(browserWs, {
+          type: repairResult.toolResult.allowed ? "action_allowed" : "action_blocked",
+          tool_name: repairResult.toolResult.toolName,
+          reason: repairResult.toolResult.reason,
+          result: repairResult.toolResult.result ?? null,
+        });
+      }
+      return;
+    }
+
     // Sent after "final" so the browser already has a line for this turn_order
     // to attach markers to (PRD.md §9 Step 4: entity markers shown inline on
     // the transcript as they're detected).
@@ -132,7 +148,7 @@ async function wireAdapter(state: SessionState): Promise<void> {
       });
     }
 
-    const toolResults = await maybeAutoProposeToolCalls(sessionId, detectedEntities);
+    const toolResults = await maybeAutoProposeToolCalls(sessionId, detectedEntities, browserWs);
     for (const toolResult of toolResults) {
       send(browserWs, {
         type: toolResult.allowed ? "action_allowed" : "action_blocked",
@@ -213,6 +229,7 @@ async function completeSession(state: SessionState, status: "completed" | "faile
   });
   send(state.browserWs, { type: "session_completed", status });
   audioBufferStore.clear(state.id);
+  clearPendingRepair(state.id);
   state.adapter.close();
 }
 

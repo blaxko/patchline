@@ -43,6 +43,13 @@ async function resolveLatestEntity(sessionId: string, entityType: string) {
   });
 }
 
+// Once an entity has been through repair (confirmed_by_caller), the value to
+// re-validate is the caller-confirmed one, not the original — possibly
+// mistranscribed — normalized_value, which PRD.md §3 keeps immutable.
+function entityValue(entity: { normalizedValue: string; verifiedValue: string | null }): string {
+  return entity.verifiedValue ?? entity.normalizedValue;
+}
+
 async function markEntity(
   entityId: string,
   state: string,
@@ -91,11 +98,11 @@ async function evaluateSingleEntity(
     actor: "system",
     resourceType: "entity",
     resourceId: entity.id,
-    payload: { entity_type: entityType, value: entity.normalizedValue },
+    payload: { entity_type: entityType, value: entityValue(entity) },
     correlationId: sessionId,
   });
 
-  const outcome = await validator(entity.normalizedValue);
+  const outcome = await validator(entityValue(entity));
   await writeValidationResult(entity.id, validatorName, outcome);
 
   if (outcome.result === "unavailable") {
@@ -138,7 +145,7 @@ async function evaluateCreateSupportCase(sessionId: string): Promise<Decision> {
   const entity = await resolveLatestEntity(sessionId, "order_id");
   if (!entity) return { allowed: false, reason: "LOW_EVIDENCE" };
 
-  const outcome = await validateOrderId(entity.normalizedValue);
+  const outcome = await validateOrderId(entityValue(entity));
   await writeValidationResult(entity.id, "order_id_existence", outcome);
 
   if (outcome.result === "unavailable") return { allowed: false, reason: "POLICY_DENIED" };
@@ -151,7 +158,7 @@ async function evaluateCreateSupportCase(sessionId: string): Promise<Decision> {
   if (outcome.result === "ambiguous_candidates") {
     // create_support_case is low-risk: ambiguous is allowed, per PRD.md §0 evidence policy.
     await markEntity(entity.id, "ambiguous");
-    return { allowed: true, reason: null, finalArgs: { order_id: entity.normalizedValue, ambiguous: true } };
+    return { allowed: true, reason: null, finalArgs: { order_id: entityValue(entity), ambiguous: true } };
   }
 
   await markEntity(entity.id, "verified", outcome.matchedValue, "deterministic_validation");

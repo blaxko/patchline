@@ -5,7 +5,13 @@ import { prisma } from "../../src/db.js";
 import { startMockAssemblyAIServer } from "../mocks/assemblyaiWsServer.js";
 import type { AaiTurnMessage } from "../../src/realtime/assemblyaiAdapter.js";
 
-const MOCK_PORT = 9099;
+// A fresh random port per test avoids TIME_WAIT collisions between test runs
+// on a fixed port (observed flakiness when reusing one port back-to-back).
+function nextMockPort(): number {
+  const port = 20000 + Math.floor(Math.random() * 20000);
+  process.env.MOCK_ASSEMBLYAI_WS_URL = `ws://localhost:${port}`;
+  return port;
+}
 
 function waitForMessage(ws: WebSocket, predicate: (msg: any) => boolean, timeoutMs = 5000): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -49,7 +55,7 @@ describe("realtime voice session (mocked AssemblyAI)", () => {
   });
 
   it("stores utterances with correct timestamps for a multi-turn call", async () => {
-    mock = startMockAssemblyAIServer(MOCK_PORT, {
+    mock = startMockAssemblyAIServer(nextMockPort(), {
       turns: [
         turn(0, "hello there", false, 0, 500),
         turn(0, "hello there", true, 0, 500),
@@ -99,7 +105,8 @@ describe("realtime voice session (mocked AssemblyAI)", () => {
   });
 
   it("survives a simulated AssemblyAI WS drop by reconnecting within the grace window", async () => {
-    mock = startMockAssemblyAIServer(MOCK_PORT, {
+    const reconnectPort = nextMockPort();
+    mock = startMockAssemblyAIServer(reconnectPort, {
       turns: [turn(0, "first turn before drop", true, 0, 400)],
       turnDelayMs: 20,
       dropConnection: true,
@@ -128,7 +135,7 @@ describe("realtime voice session (mocked AssemblyAI)", () => {
     mock.close();
     await new Promise((r) => setTimeout(r, 150));
 
-    mock = startMockAssemblyAIServer(MOCK_PORT, {
+    mock = startMockAssemblyAIServer(reconnectPort, {
       turns: [turn(1, "second turn after reconnect", true, 500, 900)],
       turnDelayMs: 20,
       idleAfterTurns: true,
@@ -151,7 +158,7 @@ describe("realtime voice session (mocked AssemblyAI)", () => {
   });
 
   it("reports a hard failure (not a reconnect loop) when AssemblyAI is unreachable at connect time", async () => {
-    // Deliberately do not start a mock server on MOCK_PORT.
+    nextMockPort(); // deliberately do not start a mock server on this port
     app = await buildServer();
     await app.listen({ port: 0, host: "127.0.0.1" });
     const address = app.server.address();

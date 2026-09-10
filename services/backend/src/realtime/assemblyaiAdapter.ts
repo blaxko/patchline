@@ -83,7 +83,10 @@ export class AssemblyAIAdapter extends EventEmitter {
     let url: string;
 
     if (env.MOCK_ASSEMBLYAI) {
-      url = `${env.MOCK_ASSEMBLYAI_WS_URL}/v3/ws?${params.toString()}`;
+      // Read lazily (not from the frozen `env` object) so tests can point
+      // different runs at different mock-server ports without re-importing.
+      const mockUrl = process.env.MOCK_ASSEMBLYAI_WS_URL ?? env.MOCK_ASSEMBLYAI_WS_URL;
+      url = `${mockUrl}/v3/ws?${params.toString()}`;
     } else {
       const token = await mintAssemblyAIToken(60);
       params.set("token", token);

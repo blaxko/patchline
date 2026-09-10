@@ -166,9 +166,22 @@ export function extractRulePassEntities(text: string): ExtractedCandidate[] {
     }
   };
 
-  push("order_id", extractOrderIds(text));
+  const orderIds = extractOrderIds(text);
+  push("order_id", orderIds);
   push("tracking_id", extractTrackingIds(text));
-  push("product_sku", extractProductSkus(text));
+
+  // A token shaped like an order id (e.g. BRK-7109) also matches the generic
+  // hyphenated-SKU pattern. Suppress it as a SKU candidate only when the
+  // *exact same value* was already extracted as an order_id in this turn —
+  // this avoids one spoken span proposing two competing tool calls (and two
+  // competing repairs) for the same characters, without discarding a
+  // legitimately SKU-only value that happens to share the same shape
+  // (e.g. the WBH-100/WBH-100X confusable pair, PRD.md §4).
+  const orderIdValues = new Set(orderIds.map((c) => c.normalizedValue));
+  push(
+    "product_sku",
+    extractProductSkus(text).filter((c) => !orderIdValues.has(c.normalizedValue)),
+  );
   push("coupon_code", extractCouponCodes(text));
   push("email", extractEmails(text));
   push("phone_number", extractPhoneNumbers(text));

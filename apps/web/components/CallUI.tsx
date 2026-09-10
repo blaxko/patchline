@@ -3,7 +3,7 @@
 import { useVoiceSession } from "../lib/useVoiceSession";
 
 export function CallUI() {
-  const { connected, lines, banner, sessionId, start, stop } = useVoiceSession();
+  const { connected, lines, banner, sessionId, repairQuestion, toolActivity, start, stop } = useVoiceSession();
 
   return (
     <div style={{ fontFamily: "monospace", maxWidth: 640, margin: "2rem auto" }}>
@@ -19,6 +19,12 @@ export function CallUI() {
         </div>
       )}
 
+      {repairQuestion && (
+        <div style={{ background: "#432", padding: 8, marginBottom: 8, border: "1px solid #a80" }}>
+          <strong>Supervisor asks:</strong> {repairQuestion}
+        </div>
+      )}
+
       <div>
         {!connected ? (
           <button onClick={() => void start()}>Start call</button>
@@ -26,6 +32,17 @@ export function CallUI() {
           <button onClick={stop}>End call</button>
         )}
       </div>
+
+      {toolActivity.length > 0 && (
+        <div style={{ marginTop: 12, fontSize: 12 }}>
+          {toolActivity.map((t, i) => (
+            <div key={i} style={{ color: t.allowed ? "#8f8" : "#f88" }}>
+              {t.allowed ? "ALLOWED" : "BLOCKED"}: {t.toolName}
+              {t.reason ? ` (${t.reason})` : ""}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={{ marginTop: 16, border: "1px solid #444", padding: 12, minHeight: 200 }}>
         {lines.length === 0 && <p style={{ opacity: 0.5 }}>Transcript will appear here…</p>}

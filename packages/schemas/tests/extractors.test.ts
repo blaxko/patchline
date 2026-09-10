@@ -113,4 +113,19 @@ describe("extractRulePassEntities", () => {
     expect(result.every((c) => c.source === "rule")).toBe(true);
     expect(result.every((c) => !("verification_state" in c))).toBe(true);
   });
+
+  it("regression: does not also propose an order-id-shaped span as a competing product_sku candidate", () => {
+    // An earlier version double-classified BRK-7109 as both order_id and
+    // product_sku, which caused two competing auto-triggered repairs for the
+    // same span to clobber each other's pending state (found during Step 6
+    // manual verification).
+    const result = extractRulePassEntities("order BRK-7109");
+    expect(result.some((c) => c.entityType === "order_id" && c.normalizedValue === "BRK-7109")).toBe(true);
+    expect(result.some((c) => c.entityType === "product_sku" && c.normalizedValue === "BRK-7109")).toBe(false);
+  });
+
+  it("still proposes a SKU value whose shape doesn't collide with the order-id pattern", () => {
+    const result = extractRulePassEntities("the SKU is PWR-BANK-20K");
+    expect(result.some((c) => c.entityType === "product_sku" && c.normalizedValue === "PWR-BANK-20K")).toBe(true);
+  });
 });
