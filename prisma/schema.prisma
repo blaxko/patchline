@@ -204,6 +204,26 @@ model RepairEvent {
   @@map("repair_events")
 }
 
+model Regression {
+  id               String   @id
+  sourceSessionId  String   @map("source_session_id")
+  entityId         String   @map("entity_id")
+  entityType       String   @map("entity_type")
+  expectedValue    String   @map("expected_value")
+  observedValue    String   @map("observed_value")
+  audioAsset       String   @map("audio_asset") // path under /data/audio
+  audioStartMs     Int      @map("audio_start_ms")
+  audioEndMs       Int      @map("audio_end_ms")
+  contextBefore    String   @map("context_before")
+  contextAfter     String   @map("context_after")
+  baselineConfigId String   @map("baseline_config_id")
+  repairMethod     String   @map("repair_method") // caller_confirmation|deterministic_validation|human_review — this IS truth_source
+  status           String   @default("open") // open|replaying|replayed|closed|reopened
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("regressions")
+}
+
 model AuditEvent {
   id            String   @id
   eventType     String   @map("event_type")

@@ -8,6 +8,7 @@ import { validateOrderId, validateTrackingId, validateSku } from "../validators/
 import { extractLlmFallbackEntities } from "../extraction/llmFallback.js";
 import { buildRepairQuestion } from "./questionTemplates.js";
 import { speak } from "../../tts/orpheusClient.js";
+import { createRegressionFromRepair, AudioSegmentMissingError } from "../regression/index.js";
 
 const REPAIR_BUDGET = 2; // max attempts before escalating, PRD.md §2.4
 
@@ -210,6 +211,8 @@ export async function handleRepairTurn(
   await writeRepairEventRow(sessionId, pending, { response: responseText, resolvedValue: candidate, latencyMs, outcome: "resolved" });
   pendingRepairs.delete(sessionId);
 
+  await createRegressionCase(sessionId, pending, candidate);
+
   const argName = Object.keys(pending.proposedArgs)[0];
   const gateResult = await evaluateToolCall({
     sessionId,
@@ -261,6 +264,31 @@ async function writeRepairEventRow(
     payload: { outcome: outcome.outcome, resolved_value: outcome.resolvedValue, attempt_number: pending.attemptNumber },
     correlationId: sessionId,
   });
+}
+
+async function createRegressionCase(sessionId: string, pending: PendingRepair, resolvedValue: string): Promise<void> {
+  try {
+    const entity = await prisma.entity.findUniqueOrThrow({ where: { id: pending.entityId } });
+    const utterance = await prisma.utterance.findUniqueOrThrow({ where: { id: entity.utteranceId } });
+
+    await createRegressionFromRepair({
+      sessionId,
+      entityId: pending.entityId,
+      entityType: pending.entityType,
+      utteranceText: utterance.text,
+      expectedValue: resolvedValue,
+      observedValue: pending.observedValue,
+      entityStartMs: entity.startMs,
+      entityEndMs: entity.endMs,
+      repairMethod: "caller_confirmation",
+    });
+  } catch (err) {
+    if (err instanceof AudioSegmentMissingError) {
+      // Fail closed per PRD.md §9 Step 7 — no regression row without its audio.
+      return;
+    }
+    throw err;
+  }
 }
 
 async function escalate(
