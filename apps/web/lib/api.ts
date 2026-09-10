@@ -1,7 +1,14 @@
 const BACKEND_HTTP_URL = process.env.NEXT_PUBLIC_BACKEND_HTTP_URL ?? "http://localhost:8080";
 
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("UNAUTHORIZED");
+  }
+}
+
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${BACKEND_HTTP_URL}${path}`, { cache: "no-store" });
+  const res = await fetch(`${BACKEND_HTTP_URL}${path}`, { cache: "no-store", credentials: "include" });
+  if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -10,8 +17,10 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BACKEND_HTTP_URL}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(body ?? {}),
   });
+  if (res.status === 401) throw new UnauthorizedError();
   const data = await res.json();
   if (!res.ok) {
     const err = new Error(data.error ?? `POST ${path} failed: ${res.status}`) as Error & { detail?: unknown; reason?: string };
