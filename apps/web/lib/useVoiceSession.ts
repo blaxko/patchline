@@ -17,6 +17,14 @@ export type TranscriptLine = {
 
 export type SessionBanner = "reconnecting" | "degraded" | null;
 
+// Drives the operator-facing status badge in CallUI. Distinct from the
+// internal "connected" boolean, which only gates whether the dropdown/Start
+// button are disabled — this is what makes idle vs connecting vs a call that
+// ended normally vs one that failed outright visually distinguishable,
+// rather than everything collapsing to "not connected" once the socket
+// closes for any reason.
+export type CallStatus = "idle" | "connecting" | "active" | "reconnecting" | "degraded" | "completed" | "failed";
+
 export type ToolActivity = {
   toolName: string;
   allowed: boolean;
@@ -27,6 +35,7 @@ const BACKEND_WS_URL = process.env.NEXT_PUBLIC_BACKEND_WS_URL ?? "ws://localhost
 
 export function useVoiceSession() {
   const [connected, setConnected] = useState(false);
+  const [status, setStatus] = useState<CallStatus>("idle");
   const [lines, setLines] = useState<TranscriptLine[]>([]);
   const [banner, setBanner] = useState<SessionBanner>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -43,6 +52,12 @@ export function useVoiceSession() {
     // all in this mode, so mic capture is skipped entirely.
     const wsUrl = clipId ? `${BACKEND_WS_URL}?clip=${encodeURIComponent(clipId)}` : BACKEND_WS_URL;
 
+    setStatus("connecting");
+    setLines([]);
+    setToolActivity([]);
+    setRepairQuestion(null);
+    setSessionId(null);
+
     if (!clipId) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -57,7 +72,14 @@ export function useVoiceSession() {
     wsRef.current = ws;
 
     ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
+    ws.onclose = () => {
+      setConnected(false);
+      // A close that never got an explicit session_completed/failed message
+      // from the server (network drop, tab closed mid-call) shouldn't leave
+      // the badge stuck on "active" — treat it as a failure so the operator
+      // always sees a definite end state.
+      setStatus((prev) => (prev === "active" || prev === "connecting" || prev === "reconnecting" || prev === "degraded" ? "failed" : prev));
+    };
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
@@ -67,6 +89,7 @@ export function useVoiceSession() {
           break;
         case "begin":
           setBanner(null);
+          setStatus("active");
           break;
         case "partial":
           setLines((prev) =>
@@ -116,13 +139,19 @@ export function useVoiceSession() {
           break;
         case "reconnecting":
           setBanner("reconnecting");
+          setStatus("reconnecting");
           break;
         case "degraded":
           setBanner("degraded");
+          setStatus("degraded");
           break;
         case "session_completed":
+          setConnected(false);
+          setStatus("completed");
+          break;
         case "failed":
           setConnected(false);
+          setStatus("failed");
           break;
         default:
           break;
@@ -149,9 +178,10 @@ export function useVoiceSession() {
     audioCtxRef.current?.close();
     audioCtxRef.current = null;
     setConnected(false);
+    setStatus("idle");
   }, []);
 
-  return { connected, lines, banner, sessionId, repairQuestion, toolActivity, start, stop };
+  return { connected, status, lines, banner, sessionId, repairQuestion, toolActivity, start, stop };
 }
 
 function upsertLine(prev: TranscriptLine[], next: TranscriptLine): TranscriptLine[] {
