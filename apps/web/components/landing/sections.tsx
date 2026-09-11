@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./Landing.module.css";
+import { MicButton } from "./MicButton";
 import { ListenIcon, VerifyIcon, RepairIcon, LearnIcon } from "./icons";
 
 export function Hero() {
@@ -13,10 +14,8 @@ export function Hero() {
             Patchline verifies critical speech — order IDs, refund amounts, addresses — before it can
             trigger a business action. When it&apos;s wrong, Patchline repairs it live instead of guessing.
           </p>
-          <div className={styles.ctaRow}>
-            <Link href="/call" className={styles.pillFilled}>
-              Try Patchline
-            </Link>
+          <div className={styles.ctaRow} style={{ alignItems: "center" }}>
+            <MicButton label="Try it" href="/dashboard" />
             <Link href="#how-it-works" className={styles.pillGhost}>
               See how it works
             </Link>
@@ -198,9 +197,7 @@ export function Close() {
     <section className={`${styles.section} ${styles.sectionCentered}`} style={{ paddingBottom: 40 }}>
       <h2 className={styles.headlineLg}>Built for the calls that can&apos;t afford to be wrong.</h2>
       <div className={styles.ctaRow} style={{ justifyContent: "center" }}>
-        <Link href="/call" className={styles.pillFilled}>
-          Try Patchline
-        </Link>
+        <MicButton label="Try Patchline" href="/dashboard" />
       </div>
     </section>
   );
@@ -211,8 +208,7 @@ export function Footer() {
     <footer className={styles.footer}>
       <span>Patchline — a self-healing reliability layer for production voice agents.</span>
       <div className={styles.footerLinks}>
-        <Link href="/dashboard">Operator</Link>
-        <Link href="/call">Try it</Link>
+        <Link href="/dashboard">Try it</Link>
       </div>
     </footer>
   );

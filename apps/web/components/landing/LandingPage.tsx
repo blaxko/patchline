@@ -31,10 +31,7 @@ export function LandingPage() {
           </div>
         </div>
         <div className={styles.navRight}>
-          <Link href="/dashboard" className={styles.signInLink}>
-            Sign in
-          </Link>
-          <Link href="/call" className={`${styles.pillFilled} ${styles.pillFilledSm}`}>
+          <Link href="/dashboard" className={`${styles.pillFilled} ${styles.pillFilledSm}`}>
             Try it
           </Link>
         </div>
