@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost } from "../../../lib/api";
 import { useDashboardLive } from "../../../lib/useDashboardLive";
+import styles from "../../../components/dashboard/Dashboard.module.css";
 
 interface Config {
   id: string;
@@ -15,13 +16,13 @@ interface Config {
   promotedAt: string | null;
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  draft: "#999",
-  tested: "#fc8",
-  eligible: "#8cf",
-  rejected: "#f84",
-  active: "#8f8",
-  superseded: "#666",
+const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
+  draft: { bg: "rgba(163, 163, 179, 0.15)", color: "#a3a3b3" },
+  tested: { bg: "rgba(255, 200, 100, 0.15)", color: "#f3c772" },
+  eligible: { bg: "rgba(97, 153, 246, 0.15)", color: "#6199f6" },
+  rejected: { bg: "rgba(243, 114, 114, 0.15)", color: "#f37272" },
+  active: { bg: "rgba(97, 153, 246, 0.15)", color: "#6199f6" },
+  superseded: { bg: "rgba(42, 42, 50, 0.6)", color: "#757580" },
 };
 
 export default function ConfigurationsPage() {
@@ -53,38 +54,42 @@ export default function ConfigurationsPage() {
   };
 
   return (
-    <div style={{ fontFamily: "monospace" }}>
-      <h1>Configuration Registry</h1>
-      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>
+    <div>
+      <h1 className={styles.h1}>Configuration Registry</h1>
+      <table className={styles.table}>
         <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #444" }}>
-            <th style={{ padding: "4px 8px" }}>NAME</th>
-            <th style={{ padding: "4px 8px" }}>VERSION</th>
-            <th style={{ padding: "4px 8px" }}>SPEECH MODEL</th>
-            <th style={{ padding: "4px 8px" }}>CONTEXT MODE</th>
-            <th style={{ padding: "4px 8px" }}>STATUS</th>
-            <th style={{ padding: "4px 8px" }}>PROMOTED BY</th>
+          <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Speech model</th>
+            <th>Context mode</th>
+            <th>Status</th>
+            <th>Promoted by</th>
           </tr>
         </thead>
         <tbody>
           {configs.map((c) => (
-            <tr key={c.id} style={{ borderBottom: "1px solid #222" }}>
-              <td style={{ padding: "4px 8px" }}>{c.name}</td>
-              <td style={{ padding: "4px 8px" }}>v{c.version}</td>
-              <td style={{ padding: "4px 8px" }}>{c.speechModel}</td>
-              <td style={{ padding: "4px 8px" }}>{c.contextMode}</td>
-              <td style={{ padding: "4px 8px", color: STATUS_COLOR[c.status] ?? "inherit" }}>{c.status}</td>
-              <td style={{ padding: "4px 8px" }}>{c.promotedBy ?? "—"}</td>
+            <tr key={c.id}>
+              <td>{c.name}</td>
+              <td>v{c.version}</td>
+              <td>{c.speechModel}</td>
+              <td>{c.contextMode}</td>
+              <td>
+                <span className={styles.badge} style={STATUS_COLOR[c.status] ?? {}}>
+                  {c.status}
+                </span>
+              </td>
+              <td>{c.promotedBy ?? "—"}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <button onClick={rollback} disabled={busy} style={{ marginTop: 16 }}>
+      <button onClick={rollback} disabled={busy} className={`${styles.button} ${styles.buttonDanger}`} style={{ marginTop: 16 }}>
         Rollback active config
       </button>
-      {message && <p style={{ color: "#fc8" }}>{message}</p>}
-      <p style={{ opacity: 0.6, fontSize: 12, marginTop: 8 }}>
+      {message && <p style={{ color: "#f3c772", fontSize: 13 }}>{message}</p>}
+      <p className={styles.muted} style={{ fontSize: 12, marginTop: 8 }}>
         Promote a candidate from its regression's detail page (Regression Lab) after a passing replay.
       </p>
     </div>

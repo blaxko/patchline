@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import styles from "./Dashboard.module.css";
 import { useDashboardLive } from "../../lib/useDashboardLive";
 import { apiPost } from "../../lib/api";
 
@@ -33,34 +34,21 @@ export function Nav() {
   };
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        padding: "10px 20px",
-        borderBottom: "1px solid #333",
-        fontFamily: "monospace",
-        fontSize: 13,
-      }}
-    >
-      <strong style={{ marginRight: 8 }}>Patchline</strong>
+    <nav className={styles.nav}>
+      <strong className={styles.navLogo}>Patchline</strong>
       {LINKS.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          style={{
-            color: pathname === link.href ? "#8cf" : "#ccc",
-            textDecoration: "none",
-          }}
-        >
+        <Link key={link.href} href={link.href} className={pathname === link.href ? styles.navLinkActive : styles.navLink}>
           {link.label}
         </Link>
       ))}
-      <button onClick={() => void resetDemo()} disabled={resetting} style={{ marginLeft: "auto" }}>
-        Reset Demo
-      </button>
-      <span style={{ color: connected ? "#8f8" : "#f84", fontSize: 11 }}>{connected ? "● live" : "○ reconnecting…"}</span>
+      <div className={styles.navSpacer} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <button onClick={() => void resetDemo()} disabled={resetting} className={styles.button}>
+          Reset Demo
+        </button>
+        <span className={styles.liveDot} style={{ color: connected ? "#6199f6" : "#f37272" }}>
+          {connected ? "● live" : "○ reconnecting…"}
+        </span>
+      </div>
     </nav>
   );
 }

@@ -1,3 +1,5 @@
+import styles from "./Dashboard.module.css";
+
 export interface EvidenceEvent {
   id: string;
   eventType: string;
@@ -47,25 +49,25 @@ function describeEvent(e: EvidenceEvent): string {
 }
 
 const EVENT_COLOR: Record<string, string> = {
-  "action.blocked": "#f84",
-  "entity.rejected": "#f84",
-  "action.allowed": "#8f8",
-  "entity.verified": "#8f8",
-  "regression.created": "#8cf",
-  "repair.started": "#fc8",
+  "action.blocked": "#f37272",
+  "entity.rejected": "#f37272",
+  "action.allowed": "#6199f6",
+  "entity.verified": "#6199f6",
+  "regression.created": "#6199f6",
+  "repair.started": "#f3c772",
 };
 
 export function EvidenceTimeline({ events, sessionStartedAt }: { events: EvidenceEvent[]; sessionStartedAt: string }) {
   if (events.length === 0) {
-    return <p style={{ opacity: 0.5, fontFamily: "monospace" }}>No events yet.</p>;
+    return <p style={{ opacity: 0.5 }}>No events yet.</p>;
   }
 
   return (
-    <div style={{ fontFamily: "monospace", fontSize: 13 }}>
+    <div className={styles.panel}>
       {events.map((e) => (
-        <div key={e.id} style={{ display: "flex", gap: 12, padding: "3px 0", borderBottom: "1px solid #222" }}>
-          <span style={{ opacity: 0.6, minWidth: 60 }}>{formatOffset(sessionStartedAt, e.createdAt)}</span>
-          <span style={{ color: EVENT_COLOR[e.eventType] ?? "inherit" }}>{describeEvent(e)}</span>
+        <div key={e.id} className={styles.timelineRow}>
+          <span className={styles.timelineTime}>{formatOffset(sessionStartedAt, e.createdAt)}</span>
+          <span style={{ color: EVENT_COLOR[e.eventType] ?? "#a3a3b3" }}>{describeEvent(e)}</span>
         </div>
       ))}
     </div>

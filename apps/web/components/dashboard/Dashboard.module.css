@@ -1,0 +1,257 @@
+/* Same DESIGN.md tokens as the landing page (Landing.module.css) — kept as
+   a separate module scoped to the operator/Call UI surfaces rather than
+   shared, since these are functionally different areas that should be free
+   to diverge later without touching the marketing page. */
+.shell {
+  --carbon-vellum: #fcfcfc;
+  --obsidian: #0a0a13;
+  --void: #040407;
+  --graphite: #08080c;
+  --smoke: #757580;
+  --ash: #a3a3b3;
+  --charcoal: #2a2a32;
+  --iris-glow: #6199f6;
+  --twilight: #4f4f80;
+
+  background: var(--obsidian);
+  background-image: radial-gradient(ellipse 1200px 800px at 10% -10%, #0e0f20 0%, #0c0c19 55%, #000000 100%);
+  color: var(--carbon-vellum);
+  min-height: 100vh;
+  font-family: var(--font-display), "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px clamp(20px, 4vw, 40px);
+}
+
+/* ---------- Nav ---------- */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px clamp(20px, 4vw, 40px);
+  border-bottom: 1px solid var(--charcoal);
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.navLogo {
+  font-weight: 600;
+  margin-right: 8px;
+  color: var(--carbon-vellum);
+}
+
+.navLink {
+  color: var(--ash);
+  text-decoration: none;
+}
+
+.navLinkActive {
+  color: var(--iris-glow);
+}
+
+.navSpacer {
+  margin-left: auto;
+}
+
+.liveDot {
+  font-size: 11px;
+  font-family: var(--font-mono), monospace;
+}
+
+/* ---------- Headings ---------- */
+.h1 {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 20px;
+  color: var(--carbon-vellum);
+}
+
+.h2 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ash);
+  margin: 24px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.muted {
+  color: var(--smoke);
+}
+
+/* ---------- Buttons ---------- */
+.button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--carbon-vellum);
+  background: transparent;
+  color: var(--carbon-vellum);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--carbon-vellum);
+  color: var(--obsidian);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.buttonPrimary {
+  background: var(--carbon-vellum);
+  color: var(--obsidian);
+  border: none;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--ash);
+}
+
+.buttonDanger {
+  border-color: #f37272;
+  color: #f37272;
+}
+
+.buttonDanger:hover:not(:disabled) {
+  background: #f37272;
+  color: var(--obsidian);
+}
+
+/* ---------- Cards / metric tiles ---------- */
+.card {
+  border: 1px solid var(--twilight);
+  border-radius: 10px;
+  background: var(--graphite);
+  padding: 16px;
+}
+
+.cardLabel {
+  font-size: 11px;
+  color: var(--smoke);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cardValue {
+  font-size: 24px;
+  margin-top: 6px;
+  color: var(--carbon-vellum);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+/* ---------- Tables ---------- */
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--charcoal);
+  color: var(--smoke);
+  font-weight: 400;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--charcoal);
+  color: var(--ash);
+}
+
+.link {
+  color: var(--iris-glow);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Badges (status colors kept, restyled as pill chips) ---------- */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ---------- Panels (transcript box, timeline container, etc.) ---------- */
+.panel {
+  border: 1px solid var(--charcoal);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--graphite);
+}
+
+.entityChip {
+  display: inline-block;
+  background: rgba(97, 153, 246, 0.12);
+  color: var(--iris-glow);
+  border-radius: 100px;
+  padding: 2px 10px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.timelineRow {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--charcoal);
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+}
+
+.timelineTime {
+  color: var(--smoke);
+  min-width: 60px;
+  flex: none;
+}
+
+/* ---------- Inputs ---------- */
+.select {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 100%;
+  background: var(--graphite);
+  color: var(--carbon-vellum);
+  border: 1px solid var(--charcoal);
+  border-radius: 8px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  color: var(--smoke);
+  margin-bottom: 4px;
+}
+
+.banner {
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}

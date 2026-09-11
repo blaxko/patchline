@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiGet } from "../../../lib/api";
 import { useDashboardLive } from "../../../lib/useDashboardLive";
+import styles from "../../../components/dashboard/Dashboard.module.css";
 
 interface RegressionRow {
   id: string;
@@ -15,12 +16,12 @@ interface RegressionRow {
   createdAt: string;
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  open: "#fc8",
-  replaying: "#8cf",
-  replayed: "#8cf",
-  closed: "#8f8",
-  reopened: "#f84",
+const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
+  open: { bg: "rgba(255, 200, 100, 0.15)", color: "#f3c772" },
+  replaying: { bg: "rgba(97, 153, 246, 0.15)", color: "#6199f6" },
+  replayed: { bg: "rgba(97, 153, 246, 0.15)", color: "#6199f6" },
+  closed: { bg: "rgba(97, 153, 246, 0.15)", color: "#6199f6" },
+  reopened: { bg: "rgba(243, 114, 114, 0.15)", color: "#f37272" },
 };
 
 export default function RegressionLabPage() {
@@ -34,37 +35,41 @@ export default function RegressionLabPage() {
   useDashboardLive(refresh);
 
   return (
-    <div style={{ fontFamily: "monospace" }}>
-      <h1>Regression Lab</h1>
-      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>
+    <div>
+      <h1 className={styles.h1}>Regression Lab</h1>
+      <table className={styles.table}>
         <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #444" }}>
-            <th style={{ padding: "4px 8px" }}>ENTITY</th>
-            <th style={{ padding: "4px 8px" }}>EXPECTED</th>
-            <th style={{ padding: "4px 8px" }}>OBSERVED (BAD)</th>
-            <th style={{ padding: "4px 8px" }}>TRUTH SOURCE</th>
-            <th style={{ padding: "4px 8px" }}>STATUS</th>
-            <th style={{ padding: "4px 8px" }}>CREATED</th>
+          <tr>
+            <th>Entity</th>
+            <th>Expected</th>
+            <th>Observed (bad)</th>
+            <th>Truth source</th>
+            <th>Status</th>
+            <th>Created</th>
           </tr>
         </thead>
         <tbody>
           {regressions.map((r) => (
-            <tr key={r.id} style={{ borderBottom: "1px solid #222" }}>
-              <td style={{ padding: "4px 8px" }}>
-                <Link href={`/regressions/${r.id}`} style={{ color: "#8cf" }}>
+            <tr key={r.id}>
+              <td>
+                <Link href={`/regressions/${r.id}`} className={styles.link}>
                   {r.entityType}
                 </Link>
               </td>
-              <td style={{ padding: "4px 8px" }}>{r.expectedValue}</td>
-              <td style={{ padding: "4px 8px" }}>{r.observedValue}</td>
-              <td style={{ padding: "4px 8px" }}>{r.repairMethod}</td>
-              <td style={{ padding: "4px 8px", color: STATUS_COLOR[r.status] ?? "inherit" }}>{r.status}</td>
-              <td style={{ padding: "4px 8px" }}>{new Date(r.createdAt).toLocaleString()}</td>
+              <td>{r.expectedValue}</td>
+              <td>{r.observedValue}</td>
+              <td>{r.repairMethod}</td>
+              <td>
+                <span className={styles.badge} style={STATUS_COLOR[r.status] ?? {}}>
+                  {r.status}
+                </span>
+              </td>
+              <td>{new Date(r.createdAt).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      {regressions.length === 0 && <p style={{ opacity: 0.5 }}>No regressions yet — a recovered repair creates one automatically.</p>}
+      {regressions.length === 0 && <p className={styles.muted}>No regressions yet — a recovered repair creates one automatically.</p>}
     </div>
   );
 }

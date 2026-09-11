@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiGet } from "../../../lib/api";
 import { useDashboardLive } from "../../../lib/useDashboardLive";
+import styles from "../../../components/dashboard/Dashboard.module.css";
 
 interface SessionRow {
   id: string;
@@ -14,13 +15,13 @@ interface SessionRow {
   activeConfig: { id: string; name: string };
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  active: "#8f8",
-  connecting: "#fc8",
-  reconnecting: "#fc8",
-  degraded: "#f84",
-  completed: "#999",
-  failed: "#f44",
+const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
+  active: { bg: "rgba(97, 153, 246, 0.15)", color: "#6199f6" },
+  connecting: { bg: "rgba(255, 200, 100, 0.15)", color: "#f3c772" },
+  reconnecting: { bg: "rgba(255, 200, 100, 0.15)", color: "#f3c772" },
+  degraded: { bg: "rgba(243, 114, 114, 0.15)", color: "#f37272" },
+  completed: { bg: "rgba(163, 163, 179, 0.15)", color: "#a3a3b3" },
+  failed: { bg: "rgba(243, 114, 114, 0.15)", color: "#f37272" },
 };
 
 export default function LiveSessionsPage() {
@@ -34,35 +35,39 @@ export default function LiveSessionsPage() {
   useDashboardLive(refresh);
 
   return (
-    <div style={{ fontFamily: "monospace" }}>
-      <h1>Live Sessions</h1>
-      <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>
+    <div>
+      <h1 className={styles.h1}>Live Sessions</h1>
+      <table className={styles.table}>
         <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #444" }}>
-            <th style={{ padding: "4px 8px" }}>CALLER</th>
-            <th style={{ padding: "4px 8px" }}>STATUS</th>
-            <th style={{ padding: "4px 8px" }}>MODE</th>
-            <th style={{ padding: "4px 8px" }}>CONFIG</th>
-            <th style={{ padding: "4px 8px" }}>STARTED</th>
+          <tr>
+            <th>Caller</th>
+            <th>Status</th>
+            <th>Mode</th>
+            <th>Config</th>
+            <th>Started</th>
           </tr>
         </thead>
         <tbody>
           {sessions.map((s) => (
-            <tr key={s.id} style={{ borderBottom: "1px solid #222" }}>
-              <td style={{ padding: "4px 8px" }}>
-                <Link href={`/sessions/${s.id}`} style={{ color: "#8cf" }}>
+            <tr key={s.id}>
+              <td>
+                <Link href={`/sessions/${s.id}`} className={styles.link}>
                   {s.callerLabel}
                 </Link>
               </td>
-              <td style={{ padding: "4px 8px", color: STATUS_COLOR[s.status] ?? "inherit" }}>{s.status}</td>
-              <td style={{ padding: "4px 8px" }}>{s.mode}</td>
-              <td style={{ padding: "4px 8px" }}>{s.activeConfig.name}</td>
-              <td style={{ padding: "4px 8px" }}>{new Date(s.startedAt).toLocaleTimeString()}</td>
+              <td>
+                <span className={styles.badge} style={STATUS_COLOR[s.status] ?? {}}>
+                  {s.status}
+                </span>
+              </td>
+              <td>{s.mode}</td>
+              <td>{s.activeConfig.name}</td>
+              <td>{new Date(s.startedAt).toLocaleTimeString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      {sessions.length === 0 && <p style={{ opacity: 0.5 }}>No sessions yet.</p>}
+      {sessions.length === 0 && <p className={styles.muted}>No sessions yet.</p>}
     </div>
   );
 }

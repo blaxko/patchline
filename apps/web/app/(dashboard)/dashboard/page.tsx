@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "../../../lib/api";
 import { useDashboardLive } from "../../../lib/useDashboardLive";
+import styles from "../../../components/dashboard/Dashboard.module.css";
 
 interface MetricsOverview {
   critical_entity_accuracy: number | null;
@@ -49,15 +50,15 @@ export default function ReliabilityOverviewPage() {
   useDashboardLive(refresh);
 
   return (
-    <div style={{ fontFamily: "monospace" }}>
-      <h1>Reliability Overview</h1>
-      {!metrics && <p>Loading…</p>}
+    <div>
+      <h1 className={styles.h1}>Reliability Overview</h1>
+      {!metrics && <p className={styles.muted}>Loading…</p>}
       {metrics && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+        <div className={styles.grid}>
           {(Object.keys(LABELS) as (keyof MetricsOverview)[]).map((key) => (
-            <div key={key} style={{ border: "1px solid #333", borderRadius: 6, padding: 12 }}>
-              <div style={{ fontSize: 11, opacity: 0.6 }}>{LABELS[key]}</div>
-              <div style={{ fontSize: 22, marginTop: 4 }}>{formatValue(key, metrics[key])}</div>
+            <div key={key} className={styles.card}>
+              <div className={styles.cardLabel}>{LABELS[key]}</div>
+              <div className={styles.cardValue}>{formatValue(key, metrics[key])}</div>
             </div>
           ))}
         </div>

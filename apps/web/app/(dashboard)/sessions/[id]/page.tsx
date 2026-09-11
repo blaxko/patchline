@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { apiGet } from "../../../../lib/api";
 import { useDashboardLive } from "../../../../lib/useDashboardLive";
 import { EvidenceTimeline, type EvidenceEvent } from "../../../../components/dashboard/EvidenceTimeline";
+import styles from "../../../../components/dashboard/Dashboard.module.css";
 
 interface SessionDetail {
   session: { id: string; status: string; startedAt: string; callerLabel: string; activeConfig: { name: string } };
@@ -27,40 +28,37 @@ export default function SessionDetailPage() {
   useEffect(refresh, [refresh]);
   useDashboardLive(refresh);
 
-  if (notFound) return <p>Session not found.</p>;
-  if (!detail) return <p>Loading…</p>;
+  if (notFound) return <p className={styles.muted}>Session not found.</p>;
+  if (!detail) return <p className={styles.muted}>Loading…</p>;
 
   return (
-    <div style={{ fontFamily: "monospace" }}>
-      <h1>Session Detail</h1>
-      <p>
-        {detail.session.callerLabel} — <span style={{ opacity: 0.7 }}>{detail.session.status}</span> — config:{" "}
+    <div>
+      <h1 className={styles.h1}>Session Detail</h1>
+      <p className={styles.muted}>
+        <span style={{ color: "#fcfcfc" }}>{detail.session.callerLabel}</span> — {detail.session.status} — config:{" "}
         {detail.session.activeConfig.name}
       </p>
 
-      <h2 style={{ fontSize: 15, marginTop: 24 }}>Transcript</h2>
-      <div style={{ border: "1px solid #333", borderRadius: 6, padding: 10, marginBottom: 20 }}>
+      <h2 className={styles.h2}>Transcript</h2>
+      <div className={styles.panel} style={{ marginBottom: 20 }}>
         {detail.utterances.map((u) => (
           <p key={u.id} style={{ margin: "4px 0" }}>
             <strong>{u.speaker}:</strong> {u.text}
           </p>
         ))}
-        {detail.utterances.length === 0 && <p style={{ opacity: 0.5 }}>No transcript yet.</p>}
+        {detail.utterances.length === 0 && <p className={styles.muted}>No transcript yet.</p>}
       </div>
 
-      <h2 style={{ fontSize: 15 }}>Entities</h2>
+      <h2 className={styles.h2}>Entities</h2>
       <div style={{ marginBottom: 20 }}>
         {detail.entities.map((e) => (
-          <span
-            key={e.id}
-            style={{ display: "inline-block", background: "#223", borderRadius: 4, padding: "2px 8px", marginRight: 6, marginBottom: 6, fontSize: 12 }}
-          >
+          <span key={e.id} className={styles.entityChip}>
             {e.entityType}: {e.normalizedValue} ({e.verificationState})
           </span>
         ))}
       </div>
 
-      <h2 style={{ fontSize: 15 }}>Evidence Timeline</h2>
+      <h2 className={styles.h2}>Evidence Timeline</h2>
       <EvidenceTimeline events={detail.events} sessionStartedAt={detail.session.startedAt} />
     </div>
   );

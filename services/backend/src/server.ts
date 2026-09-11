@@ -50,7 +50,16 @@ if (process.argv[1] && process.argv[1].endsWith("server.ts")) {
   const { cleanupExpiredAudio } = await import("./reliability/regression/retention.js");
 
   const app = await buildServer();
-  app.listen({ port: env.BACKEND_PORT, host: "0.0.0.0" }).catch((err) => {
+  // "::" (not "0.0.0.0") binds dual-stack IPv4+IPv6 on Windows/Linux, where
+  // IPV6_V6ONLY defaults off — real bug found while restyling the dashboard:
+  // "localhost" resolved to the IPv6 loopback (::1) for the browser's
+  // WebSocket connection specifically (fetch() on the same page happened to
+  // resolve IPv4 and worked fine), and since the server only listened on
+  // 0.0.0.0 (IPv4-only), that WS connection got an immediate ECONNREFUSED —
+  // surfacing as "WebSocket is closed before the connection is established"
+  // and an indefinite "reconnecting…" in the dashboard nav, indistinguishable
+  // from the (also-real, separate) "no backend running at all" case.
+  app.listen({ port: env.BACKEND_PORT, host: "::" }).catch((err) => {
     app.log.error(err);
     process.exit(1);
   });

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiPost } from "../../lib/api";
 import { setToken } from "../../lib/authToken";
+import styles from "../../components/dashboard/Dashboard.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,23 +28,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ background: "#111", color: "#eee", minHeight: "100vh" }}>
-      <div style={{ fontFamily: "monospace", maxWidth: 360, margin: "0 auto", paddingTop: "10vh" }}>
-        <h1>Patchline — Operator Login</h1>
+    <div className={styles.shell}>
+      <div style={{ maxWidth: 360, margin: "0 auto", paddingTop: "12vh" }}>
+        <h1 className={styles.h1}>Patchline — Operator Login</h1>
         <form onSubmit={submit}>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Operator password"
-            style={{ width: "100%", padding: 8, marginBottom: 8 }}
+            className={styles.select}
+            style={{ marginBottom: 12 }}
             autoFocus
           />
-          <button type="submit" disabled={busy} style={{ width: "100%", padding: 8 }}>
+          <button type="submit" disabled={busy} className={`${styles.button} ${styles.buttonPrimary}`} style={{ width: "100%" }}>
             Log in
           </button>
         </form>
-        {error && <p style={{ color: "#f84" }}>{error}</p>}
+        {error && <p style={{ color: "#f37272", fontSize: 13 }}>{error}</p>}
       </div>
     </div>
   );
