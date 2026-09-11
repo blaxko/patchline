@@ -1,34 +1,33 @@
-import { Fraunces, Inter } from "next/font/google";
+import { Inter, Space_Mono } from "next/font/google";
 import { LandingPage } from "../components/landing/LandingPage";
 
-// Section 4: a high-contrast display serif for headlines (Fraunces is the
-// same "Fraunces"-class font the brief names directly) + a clean grotesk
-// for everything else. next/font self-hosts these at build time — no
-// external request at runtime, which matters for a laptop demo on
-// possibly-unreliable venue wifi.
-const display = Fraunces({
+// DESIGN.md's own documented substitutes for the extracted (non-real)
+// Frame.io font names: Inter stands in for "FrameGothic" (body + display —
+// the design system deliberately uses one geometric sans for everything),
+// Space Mono stands in for "NeueMachinaInktrap" (eyebrow labels only).
+const display = Inter({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600"],
   variable: "--font-display",
   display: "swap",
 });
 
-const body = Inter({
+const mono = Space_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-body",
+  weight: ["400", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
 export const metadata = {
-  title: "Patchline — Every word is evidence.",
-  description: "Patchline makes sure your voice agent hears it right before it acts on it.",
+  title: "Patchline — Reliability for voice agents",
+  description:
+    "Patchline verifies critical speech before it can trigger a business action, repairs it live when it's wrong, and turns every failure into a permanent regression test.",
 };
 
 export default function Page() {
   return (
-    <div className={`${display.variable} ${body.variable}`}>
+    <div className={`${display.variable} ${mono.variable}`}>
       <LandingPage />
     </div>
   );

@@ -1,143 +1,98 @@
+import Link from "next/link";
 import styles from "./Landing.module.css";
-import { MicButton } from "./MicButton";
-import { ProfileFigure, ReceiverGlyph, CheckGlyph, QuestionGlyph, LoopGlyph, MicGlyph } from "./icons";
+import { ListenIcon, VerifyIcon, RepairIcon, LearnIcon } from "./icons";
 
-/** Stage A (0–15%): hero. */
 export function Hero() {
   return (
-    <section className={`${styles.section} ${styles.hero}`}>
-      <div className={styles.heroFigureWrap}>
-        <ProfileFigure />
-      </div>
-      <div className={styles.sectionInner}>
-        <h1 className={styles.headline}>
-          Every word is <span className={styles.headlineLight}>evidence.</span>
-        </h1>
-        <p className={styles.subline}>
-          Patchline makes sure your voice agent hears it right — before it acts on it.
-        </p>
-        <MicButton label="Start" />
-        <div className={styles.scrollCue}>
-          <span>Scroll</span>
-          <span className={styles.scrollLine} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** Stage B (15–40%): the problem — mist departs, text names what breaks. */
-export function Problem() {
-  return (
-    <section className={styles.splitSection}>
-      <div className={styles.splitVisual}>
-        <svg width="240" height="320" viewBox="0 0 240 320" fill="none">
-          <path
-            d="M40 20c30 30 20 80 60 110s90 20 110 90"
-            stroke="var(--sand)"
-            strokeWidth="1.5"
-            strokeDasharray="2 10"
-            strokeLinecap="round"
-          />
-          <circle cx="40" cy="20" r="3" fill="var(--sand)" />
-          <circle cx="210" cy="220" r="3" fill="var(--umber)" />
-        </svg>
-      </div>
-      <div className={styles.splitText}>
-        <h2 className={styles.headline}>Speech gets misheard.</h2>
-        <p className={styles.subline}>The wrong details slip through before anyone notices.</p>
-        <div className={styles.problemList}>
-          <div className={styles.problemItem}>A wrong order ID.</div>
-          <div className={styles.problemItem}>A wrong refund amount.</div>
-          <div className={styles.problemItem}>A wrong shipping address.</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** Stage C (40–60%): arrival at the receiver. */
-export function Receiver() {
-  return (
-    <section className={`${styles.section} ${styles.sectionDark}`}>
-      <ReceiverGlyph className={styles.heroFigureWrap} stroke="var(--sand)" accent="var(--taupe)" />
-      <div className={styles.sectionInner}>
-        <h2 className={styles.headline}>Patchline listens before the system trusts.</h2>
-        <p className={styles.subline}>Every detail is checked against what&apos;s actually true, before it can trigger anything.</p>
-        <div className={styles.glassCard}>
-          <span className={styles.glassDot} />
-          listening — extracting entities
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** Stage D (50–65%): the board of resolved text. */
-export function Board() {
-  return (
     <section className={styles.section}>
-      <div className={styles.board}>
-        <div className={styles.boardLine}>
-          <span className={styles.boardTimestamp}>00:18.2</span>
-          <span>entity detected — order id</span>
+      <div className={styles.hero}>
+        <div className={styles.heroLeft}>
+          <p className={styles.eyebrow}>Voice agent reliability</p>
+          <h1 className={styles.headlineDisplay}>Every word your voice agent hears is evidence.</h1>
+          <p className={styles.subheadline}>
+            Patchline verifies critical speech — order IDs, refund amounts, addresses — before it can
+            trigger a business action. When it&apos;s wrong, Patchline repairs it live instead of guessing.
+          </p>
+          <div className={styles.ctaRow}>
+            <Link href="/call" className={styles.pillFilled}>
+              Try Patchline
+            </Link>
+            <Link href="#how-it-works" className={styles.pillGhost}>
+              See how it works
+            </Link>
+          </div>
         </div>
-        <div className={styles.boardLine}>
-          <span className={styles.boardTimestamp}>00:19.6</span>
-          <span>validation failed — repair requested</span>
+        <div className={styles.heroRight}>
+          <div className={styles.mockup}>
+            <div className={styles.mockupHeader}>
+              <span className={styles.mockupDot} />
+              <span className={styles.mockupDot} />
+              <span className={styles.mockupDot} />
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:18.2</span>
+              <span>Caller speaks order ID</span>
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:19.4</span>
+              <span className={styles.timelineHighlight}>Entity detected: BRK-7109</span>
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:19.6</span>
+              <span>Validation failed</span>
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:19.7</span>
+              <span>lookup_order blocked</span>
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:20.1</span>
+              <span>Repair question spoken</span>
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:23.5</span>
+              <span className={styles.timelineHighlight}>Entity verified: BRK-71Q9</span>
+            </div>
+            <div className={styles.timelineRow}>
+              <span className={styles.timelineTime}>00:24.0</span>
+              <span>Regression #018 created</span>
+            </div>
+          </div>
         </div>
-        <div className={styles.boardLine}>
-          <span className={styles.boardTimestamp}>00:23.5</span>
-          <span>entity verified</span>
-        </div>
-      </div>
-      <div className={styles.sectionInner} style={{ marginTop: 40 }}>
-        <h2 className={styles.headline}>
-          Every failure becomes proof. <span className={styles.headlineLight}>Every proof makes the next call better.</span>
-        </h2>
-        <p className={styles.subline}>Each mistake it catches is kept and re-tested, so it never happens the same way twice.</p>
       </div>
     </section>
   );
 }
 
-const STEPS = [
+const PROBLEMS = [
   {
-    icon: <MicGlyph color="var(--umber)" size={22} />,
-    title: "Listen",
-    body: "Patchline listens alongside your voice agent, in real time, on every call.",
+    title: "A wrong order ID",
+    body: "Triggers the wrong lookup — the caller gets someone else's order status.",
   },
   {
-    icon: <CheckGlyph />,
-    title: "Verify",
-    body: "Before any detail like a name, an order number, or an amount can trigger an action, it's checked against what's actually true.",
+    title: "A wrong refund amount",
+    body: "One misheard digit turns eighteen dollars into an eighty-dollar mistake.",
   },
   {
-    icon: <QuestionGlyph />,
-    title: "Repair",
-    body: "If something's unclear, Patchline asks one short, specific question — never restarts the conversation, never guesses.",
-  },
-  {
-    icon: <LoopGlyph />,
-    title: "Learn",
-    body: "Every mistake it catches becomes a permanent test, so the next call gets it right the first time.",
+    title: "A wrong shipping address",
+    body: "The package goes out — to the wrong place, on the agent's confidence alone.",
   },
 ];
 
-/** Stage E (65–85%): how it works — the one calm, explanatory stretch. */
-export function HowItWorks() {
+export function Problem() {
   return (
-    <section className={styles.section} style={{ paddingBottom: 0 }}>
-      <span className={styles.eyebrow}>How it works</span>
-      <div className={styles.howItWorks}>
-        <div className={styles.howLine} />
-        {STEPS.map((step) => (
-          <div key={step.title} className={styles.howStep}>
-            <div className={styles.howStepNumber}>{step.icon}</div>
-            <div>
-              <h3 className={styles.howStepTitle}>{step.title}</h3>
-              <p className={styles.howStepBody}>{step.body}</p>
-            </div>
+    <section className={`${styles.section} ${styles.sectionCentered}`}>
+      <p className={styles.eyebrow}>The problem</p>
+      <h2 className={styles.headlineLg}>Speech is treated as fact. It shouldn&apos;t be.</h2>
+      <p className={styles.subheadline}>
+        Most voice agents receive a transcript and act on it immediately. If the transcription is
+        wrong, the rest of the system continues anyway — with false confidence.
+      </p>
+      <div className={styles.featureGrid}>
+        {PROBLEMS.map((p) => (
+          <div key={p.title} className={styles.featureCol} style={{ textAlign: "center", alignItems: "center" }}>
+            <h3 className={styles.featureTitle}>{p.title}</h3>
+            <p className={styles.featureBody}>{p.body}</p>
           </div>
         ))}
       </div>
@@ -145,20 +100,120 @@ export function HowItWorks() {
   );
 }
 
-/** Stage F (85–100%): close and CTA. */
+const STEPS = [
+  {
+    icon: <ListenIcon />,
+    title: "Listen",
+    body: "Patchline listens alongside your voice agent, in real time, on every call.",
+  },
+  {
+    icon: <VerifyIcon />,
+    title: "Verify",
+    body: "Before any detail like a name, an order number, or an amount can trigger an action, it's checked against what's actually true.",
+  },
+  {
+    icon: <RepairIcon />,
+    title: "Repair",
+    body: "If something's unclear, Patchline asks one short, specific question — never restarts the conversation, never guesses.",
+  },
+  {
+    icon: <LearnIcon />,
+    title: "Learn",
+    body: "Every mistake it catches becomes a permanent regression test, so the next call gets it right the first time.",
+  },
+];
+
+export function HowItWorks() {
+  return (
+    <section id="how-it-works" className={`${styles.section} ${styles.sectionCentered}`}>
+      <p className={styles.eyebrow}>How it works</p>
+      <h2 className={styles.headlineLg}>One reliability layer, four jobs.</h2>
+      <div className={styles.featureGrid} style={{ marginTop: 24 }}>
+        {STEPS.map((step) => (
+          <div key={step.title} className={styles.featureCol}>
+            <span className={styles.featureIcon}>{step.icon}</span>
+            <h3 className={styles.featureTitle}>{step.title}</h3>
+            <p className={styles.featureBody}>{step.body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function RegressionShowcase() {
+  return (
+    <section className={`${styles.section} ${styles.sectionCentered} ${styles.midGradient}`}>
+      <p className={styles.eyebrow}>The regression lab</p>
+      <h2 className={styles.headlineLg}>Every failure becomes a test it must pass — forever.</h2>
+      <p className={styles.subheadline}>
+        A recovered failure is replayed against candidate speech configurations. A config only gets
+        promoted once it passes the case that used to fail it, without breaking any case that already
+        passed.
+      </p>
+      <div className={styles.mockup} style={{ maxWidth: 560, textAlign: "left" }}>
+        <table className={styles.compareTable}>
+          <thead>
+            <tr>
+              <th>Config</th>
+              <th>Entity</th>
+              <th>Latency</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Baseline</td>
+              <td>BRK-7109</td>
+              <td>412 ms</td>
+              <td className={styles.resultFail}>FAIL</td>
+            </tr>
+            <tr>
+              <td>Context v2</td>
+              <td>BRK-71Q9</td>
+              <td>438 ms</td>
+              <td className={styles.resultPass}>PASS</td>
+            </tr>
+            <tr>
+              <td>Keyterms v3</td>
+              <td>BRK-71Q9</td>
+              <td>421 ms</td>
+              <td className={styles.resultPass}>PASS</td>
+            </tr>
+            <tr>
+              <td>Combined v7</td>
+              <td>BRK-71Q9</td>
+              <td>429 ms</td>
+              <td className={styles.resultPass}>PASS</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 export function Close() {
   return (
-    <>
-      <section className={`${styles.section} ${styles.close}`}>
-        <div className={styles.sectionInner}>
-          <h2 className={styles.headline}>Built for the calls that can&apos;t afford to be wrong.</h2>
-          <MicButton label="Try Patchline" />
-        </div>
-      </section>
-      <footer className={styles.footer}>
-        <strong style={{ color: "var(--espresso)", fontFamily: "var(--font-display)" }}>Patchline</strong>
-        <span>A self-healing reliability layer for production voice agents.</span>
-      </footer>
-    </>
+    <section className={`${styles.section} ${styles.sectionCentered}`} style={{ paddingBottom: 40 }}>
+      <h2 className={styles.headlineLg}>Built for the calls that can&apos;t afford to be wrong.</h2>
+      <div className={styles.ctaRow} style={{ justifyContent: "center" }}>
+        <Link href="/call" className={styles.pillFilled}>
+          Try Patchline
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer className={styles.footer}>
+      <span>Patchline — a self-healing reliability layer for production voice agents.</span>
+      <div className={styles.footerLinks}>
+        <Link href="/dashboard">Operator</Link>
+        <Link href="/call">Try it</Link>
+      </div>
+    </footer>
   );
 }
