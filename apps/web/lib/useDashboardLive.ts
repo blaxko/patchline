@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { backendWsUrl } from "./api";
+import { backendAuthedWsUrl } from "./api";
 
 /**
  * Subscribes to the dashboard WS channel (PRD.md §8/§9 Step 11) and calls
@@ -31,7 +31,7 @@ export function useDashboardLive(onEvent: () => void) {
 
     const connect = () => {
       if (stopped) return;
-      ws = new WebSocket(backendWsUrl("/ws/dashboard"));
+      ws = new WebSocket(backendAuthedWsUrl("/ws/dashboard"));
       ws.onopen = () => {
         setConnected(true);
         stopPolling();

@@ -1,28 +1,48 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { createSessionToken, verifySessionToken, parseCookies, SESSION_COOKIE_NAME } from "./session.js";
+import { createSessionToken, verifySessionToken } from "./session.js";
 
 const loginBodySchema = z.object({ password: z.string() });
 
 const PUBLIC_PATHS = new Set(["/api/auth/login", "/ws/session"]);
 
-// Deployed frontend and backend live on different origins (e.g. separate
-// Railway services), which makes this a cross-site request from the
-// cookie's point of view. SameSite=Lax (fine for same-origin local dev,
-// where frontend and backend share http://localhost) silently drops the
-// cookie on cross-site fetch/XHR calls — the login POST would still appear
-// to succeed, but every subsequent /api/* call would 401. SameSite=None
-// requires Secure, which in turn requires HTTPS — true for both platforms'
-// public URLs, never true for local http://localhost, hence the branch.
-function cookieAttributes(): string {
-  const cross = process.env.NODE_ENV === "production";
-  return cross ? "HttpOnly; SameSite=None; Secure; Path=/" : "HttpOnly; SameSite=Lax; Path=/";
+// Real Safari bug found post-deploy: frontend and backend live on different
+// Railway subdomains, making the old session cookie cross-site from the
+// browser's point of view. Even with SameSite=None; Secure, Safari's
+// Intelligent Tracking Prevention can still block or evict a just-set
+// cross-site cookie outright — the login POST appeared to succeed, but the
+// very next request had no cookie at all, bouncing straight back to
+// /login in a loop. Chrome/Firefox don't apply this restriction, which is
+// why it only ever showed up on iPhone Safari.
+//
+// Fix: stop relying on the browser to auto-attach anything cross-site.
+// The signed token (same createSessionToken/verifySessionToken as before —
+// only the transport changed) is returned in the login response body, the
+// frontend stores it itself (localStorage) and sends it back explicitly as
+// an `Authorization: Bearer <token>` header. ITP only targets cookies; a
+// token in a request header or a JSON response body isn't cookie storage
+// at all, so this failure mode can't recur regardless of how Safari's ITP
+// heuristics evolve.
+//
+// The one exception is /ws/dashboard: the browser's native WebSocket API
+// cannot set custom headers on the handshake request, so that connection
+// (and, for the same reason, any <audio>/<img>-style plain resource fetch)
+// passes the token as a `?token=` query param instead. Scoped to this
+// hackathon's single-shared-operator-password trust model (SECURITY.md) —
+// a token in a URL can end up in server logs, which would be worth
+// tightening before any real multi-tenant use.
+function extractToken(request: FastifyRequest): string | undefined {
+  const header = request.headers.authorization;
+  if (header?.startsWith("Bearer ")) return header.slice(7);
+
+  const queryToken = (request.query as Record<string, unknown> | undefined)?.token;
+  return typeof queryToken === "string" ? queryToken : undefined;
 }
 
 /**
- * OPERATOR_PASSWORD -> signed httpOnly session cookie, gating every /api/*
- * route and the /ws/dashboard channel (SECURITY.md "Operator authentication").
- * The caller-facing /ws/session route is deliberately NOT gated — that's the
+ * OPERATOR_PASSWORD -> signed bearer token, gating every /api/* route and
+ * the /ws/dashboard channel (SECURITY.md "Operator authentication"). The
+ * caller-facing /ws/session route is deliberately NOT gated — that's the
  * public voice-call endpoint, not an operator control.
  */
 export function registerAuthRoutes(app: FastifyInstance): void {
@@ -40,12 +60,13 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     }
 
     const token = createSessionToken(sessionSecret);
-    reply.header("Set-Cookie", `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; ${cookieAttributes()}; Max-Age=43200`);
-    return reply.send({ ok: true });
+    return reply.send({ ok: true, token });
   });
 
+  // Stateless token (nothing server-side to revoke, same as when this was a
+  // signed cookie) — kept for API shape parity; the frontend's own "logout"
+  // is just deleting the token from localStorage.
   app.post("/api/auth/logout", async (_request, reply) => {
-    reply.header("Set-Cookie", `${SESSION_COOKIE_NAME}=; ${cookieAttributes()}; Max-Age=0`);
     return reply.send({ ok: true });
   });
 
@@ -62,8 +83,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const isGated = path.startsWith("/api/") || path === "/ws/dashboard";
     if (!isGated || PUBLIC_PATHS.has(path)) return;
 
-    const cookies = parseCookies(request.headers.cookie);
-    if (!verifySessionToken(cookies[SESSION_COOKIE_NAME], sessionSecret)) {
+    if (!verifySessionToken(extractToken(request), sessionSecret)) {
       return reply.code(401).send({ error: "UNAUTHORIZED" });
     }
   });

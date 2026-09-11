@@ -9,12 +9,11 @@ import { registerAuthRoutes } from "./auth/routes.js";
 
 export async function buildServer() {
   const app = Fastify({ logger: true });
-  // Credentialed cross-origin requests (the dashboard's session cookie) need
-  // an explicit allowed origin — "*" is rejected by browsers alongside
-  // credentials:"include". Frontend origin only, not a public API.
+  // Operator auth is a bearer token in an Authorization header (auth/routes.ts),
+  // not a cookie, so no credentials:true is needed here — restricting the
+  // origin is still worth keeping rather than opening this up as a public API.
   await app.register(corsPlugin, {
     origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
-    credentials: true,
   });
   await app.register(websocketPlugin);
   registerAuthRoutes(app);

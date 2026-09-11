@@ -1,14 +1,15 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export const SESSION_COOKIE_NAME = "patchline_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 function sign(payload: string, secret: string): string {
   return createHmac("sha256", secret).update(payload).digest("base64url");
 }
 
-/** Signed, httpOnly session cookie per SECURITY.md — a single shared operator
- * password exchanged for this, explicitly not multi-user/production-grade auth. */
+/** Signed bearer session token per SECURITY.md — a single shared operator
+ * password exchanged for this, explicitly not multi-user/production-grade auth.
+ * Carried as an Authorization header (or a ?token= query param where the
+ * browser can't set headers), not a cookie — see auth/routes.ts for why. */
 export function createSessionToken(secret: string): string {
   const payload = JSON.stringify({ exp: Date.now() + SESSION_TTL_MS });
   const payloadB64 = Buffer.from(payload).toString("base64url");
@@ -35,15 +36,3 @@ export function verifySessionToken(token: string | undefined, secret: string): b
   }
 }
 
-export function parseCookies(header: string | undefined): Record<string, string> {
-  const cookies: Record<string, string> = {};
-  if (!header) return cookies;
-  for (const part of header.split(";")) {
-    const eq = part.indexOf("=");
-    if (eq === -1) continue;
-    const key = part.slice(0, eq).trim();
-    const value = part.slice(eq + 1).trim();
-    if (key) cookies[key] = decodeURIComponent(value);
-  }
-  return cookies;
-}

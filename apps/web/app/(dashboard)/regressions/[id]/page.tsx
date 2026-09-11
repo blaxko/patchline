@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { apiGet, apiPost } from "../../../../lib/api";
+import { apiGet, apiPost, backendAuthedResourceUrl } from "../../../../lib/api";
 import { useDashboardLive } from "../../../../lib/useDashboardLive";
 import { RegressionCompare, type ReplayRunRow } from "../../../../components/dashboard/RegressionCompare";
 
@@ -24,8 +24,6 @@ interface RegressionDetail {
   };
   replay_runs: ReplayRunRow[];
 }
-
-const BACKEND_HTTP_URL = process.env.NEXT_PUBLIC_BACKEND_HTTP_URL ?? "http://localhost:8080";
 
 export default function RegressionDetailPage() {
   const params = useParams<{ id: string }>();
@@ -89,7 +87,7 @@ export default function RegressionDetailPage() {
         {detail.regression.entityType}: expected <strong>{detail.regression.expectedValue}</strong>, originally heard{" "}
         <strong>{detail.regression.observedValue}</strong> — truth source: {detail.regression.repairMethod}
       </p>
-      <audio controls src={`${BACKEND_HTTP_URL}/api/regressions/${params.id}/audio`} style={{ marginBottom: 16 }} />
+      <audio controls src={backendAuthedResourceUrl(`/api/regressions/${params.id}/audio`)} style={{ marginBottom: 16 }} />
 
       <h2 style={{ fontSize: 15 }}>Replay against candidate configs</h2>
       <div style={{ marginBottom: 12 }}>

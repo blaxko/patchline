@@ -23,19 +23,19 @@ describe("Operator auth middleware (PRD.md §9 Step 13)", () => {
     process.env.SESSION_SECRET = originalSecret;
   });
 
-  it("blocks an /api/* route with no cookie", async () => {
+  it("blocks an /api/* route with no token", async () => {
     const app = await buildServer();
     const res = await app.inject({ method: "GET", url: "/api/configs" });
     expect(res.statusCode).toBe(401);
     await app.close();
   });
 
-  it("blocks an /api/* route with an invalid cookie", async () => {
+  it("blocks an /api/* route with an invalid bearer token", async () => {
     const app = await buildServer();
     const res = await app.inject({
       method: "GET",
       url: "/api/configs",
-      headers: { cookie: "patchline_session=garbage" },
+      headers: { authorization: "Bearer garbage" },
     });
     expect(res.statusCode).toBe(401);
     await app.close();
@@ -48,7 +48,7 @@ describe("Operator auth middleware (PRD.md §9 Step 13)", () => {
     await app.close();
   });
 
-  it("allows an /api/* route after logging in with the correct password", async () => {
+  it("allows an /api/* route after logging in with the correct password, via an Authorization header", async () => {
     const app = await buildServer();
     const loginRes = await app.inject({
       method: "POST",
@@ -56,12 +56,28 @@ describe("Operator auth middleware (PRD.md §9 Step 13)", () => {
       payload: { password: "test-operator-password" },
     });
     expect(loginRes.statusCode).toBe(200);
-    const setCookie = loginRes.headers["set-cookie"];
-    expect(setCookie).toBeTruthy();
-    const cookie = Array.isArray(setCookie) ? setCookie[0] : setCookie;
-    const cookieValue = (cookie as string).split(";")[0];
+    const { token } = loginRes.json();
+    expect(typeof token).toBe("string");
 
-    const res = await app.inject({ method: "GET", url: "/api/configs", headers: { cookie: cookieValue } });
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/configs",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+    await app.close();
+  });
+
+  it("also accepts the token as a ?token= query param, for the WS dashboard channel/<audio> src that can't set headers", async () => {
+    const app = await buildServer();
+    const loginRes = await app.inject({
+      method: "POST",
+      url: "/api/auth/login",
+      payload: { password: "test-operator-password" },
+    });
+    const { token } = loginRes.json();
+
+    const res = await app.inject({ method: "GET", url: `/api/configs?token=${token}` });
     expect(res.statusCode).toBe(200);
     await app.close();
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createSessionToken, verifySessionToken, parseCookies } from "../../src/auth/session.js";
+import { createSessionToken, verifySessionToken } from "../../src/auth/session.js";
 
 describe("session token signing (SECURITY.md operator auth)", () => {
   it("a freshly created token verifies as valid", () => {
@@ -34,19 +34,5 @@ describe("session token signing (SECURITY.md operator auth)", () => {
     vi.setSystemTime(new Date("2026-01-02T00:00:00Z")); // >12h later
     expect(verifySessionToken(token, "test-secret")).toBe(false);
     vi.useRealTimers();
-  });
-});
-
-describe("parseCookies", () => {
-  it("parses a single cookie", () => {
-    expect(parseCookies("patchline_session=abc123")).toEqual({ patchline_session: "abc123" });
-  });
-
-  it("parses multiple cookies", () => {
-    expect(parseCookies("a=1; b=2")).toEqual({ a: "1", b: "2" });
-  });
-
-  it("returns an empty object for a missing header", () => {
-    expect(parseCookies(undefined)).toEqual({});
   });
 });

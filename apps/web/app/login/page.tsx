@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiPost } from "../../lib/api";
+import { setToken } from "../../lib/authToken";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +16,8 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await apiPost("/api/auth/login", { password });
+      const { token } = await apiPost<{ ok: true; token: string }>("/api/auth/login", { password });
+      setToken(token);
       router.push("/");
     } catch {
       setError("Incorrect password.");
