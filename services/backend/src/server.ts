@@ -29,9 +29,20 @@ if (process.argv[1] && process.argv[1].endsWith("server.ts")) {
   }
 
   // SECURITY.md: no default password shipped — refuse to boot in production
-  // without both set, rather than silently running unauthenticated.
-  if (process.env.NODE_ENV === "production" && (!process.env.OPERATOR_PASSWORD || !process.env.SESSION_SECRET)) {
-    console.error("[patchline] Refusing to start: OPERATOR_PASSWORD and SESSION_SECRET must both be set in production.");
+  // without both set, rather than silently running unauthenticated. The one
+  // explicit escape hatch is DISABLE_AUTH=1 (judge-facing deploy with no
+  // login wall, by deliberate request) — that path needs neither var at
+  // all, so it's checked first rather than folded into the condition below.
+  const authDisabled = process.env.DISABLE_AUTH === "1";
+  if (authDisabled) {
+    console.log(
+      "[patchline] Operator auth: DISABLED (DISABLE_AUTH=1) — every /api/* route and /ws/dashboard are open, no login required.",
+    );
+  } else if (process.env.NODE_ENV === "production" && (!process.env.OPERATOR_PASSWORD || !process.env.SESSION_SECRET)) {
+    console.error(
+      "[patchline] Refusing to start: OPERATOR_PASSWORD and SESSION_SECRET must both be set in production, " +
+        "or set DISABLE_AUTH=1 to run this deploy with no operator login at all.",
+    );
     process.exit(1);
   }
 

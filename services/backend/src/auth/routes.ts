@@ -73,11 +73,15 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   app.addHook("onRequest", async (request, reply) => {
     // Auth is off when no password is configured (dev/test convenience — "no
     // default password shipped" per SECURITY.md; the boot-time check in
-    // server.ts is what actually enforces this is set in production), and
+    // server.ts is what actually enforces this is set in production),
     // always off under the test runner regardless of ambient .env state
     // (Prisma Client auto-loads .env, which could otherwise leak a real
-    // OPERATOR_PASSWORD into test runs and make them environment-dependent).
-    if (!operatorPassword || process.env.NODE_ENV === "test") return;
+    // OPERATOR_PASSWORD into test runs and make them environment-dependent),
+    // and explicitly off when DISABLE_AUTH=1 — a judge-facing deploy with no
+    // login wall by deliberate request, not a fallback for a misconfigured
+    // production env (see server.ts's boot-time check, which still refuses
+    // to start on a missing password unless this same flag is set).
+    if (!operatorPassword || process.env.DISABLE_AUTH === "1" || process.env.NODE_ENV === "test") return;
 
     const path = request.url.split("?")[0];
     const isGated = path.startsWith("/api/") || path === "/ws/dashboard";

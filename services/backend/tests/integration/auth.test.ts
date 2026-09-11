@@ -91,3 +91,40 @@ describe("Operator auth middleware (PRD.md §9 Step 13)", () => {
     await app.close();
   });
 });
+
+describe("DISABLE_AUTH=1 (judge-facing deploy with no login wall)", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalPassword = process.env.OPERATOR_PASSWORD;
+  const originalSecret = process.env.SESSION_SECRET;
+  const originalDisableAuth = process.env.DISABLE_AUTH;
+
+  beforeAll(() => {
+    process.env.NODE_ENV = "integration-test-with-real-auth";
+    process.env.DISABLE_AUTH = "1";
+    // Deliberately left unset — the whole point of this flag is that it
+    // works with neither of these configured at all.
+    delete process.env.OPERATOR_PASSWORD;
+    delete process.env.SESSION_SECRET;
+  });
+
+  afterAll(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+    process.env.OPERATOR_PASSWORD = originalPassword;
+    process.env.SESSION_SECRET = originalSecret;
+    process.env.DISABLE_AUTH = originalDisableAuth;
+  });
+
+  it("allows /api/* with no token at all, no OPERATOR_PASSWORD/SESSION_SECRET configured", async () => {
+    const app = await buildServer();
+    const res = await app.inject({ method: "GET", url: "/api/configs" });
+    expect(res.statusCode).toBe(200);
+    await app.close();
+  });
+
+  it("allows the /ws/dashboard handshake with no token", async () => {
+    const app = await buildServer();
+    const res = await app.inject({ method: "GET", url: "/ws/dashboard" });
+    expect(res.statusCode).not.toBe(401);
+    await app.close();
+  });
+});
