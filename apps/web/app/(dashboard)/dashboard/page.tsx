@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { apiGet } from "../../lib/api";
-import { useDashboardLive } from "../../lib/useDashboardLive";
+import { apiGet } from "../../../lib/api";
+import { useDashboardLive } from "../../../lib/useDashboardLive";
 
 interface MetricsOverview {
   critical_entity_accuracy: number | null;

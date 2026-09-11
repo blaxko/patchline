@@ -18,7 +18,7 @@ export default function LoginPage() {
     try {
       const { token } = await apiPost<{ ok: true; token: string }>("/api/auth/login", { password });
       setToken(token);
-      router.push("/");
+      router.push("/dashboard");
     } catch {
       setError("Incorrect password.");
     } finally {
@@ -27,22 +27,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ fontFamily: "monospace", maxWidth: 360, margin: "10vh auto" }}>
-      <h1>Patchline — Operator Login</h1>
-      <form onSubmit={submit}>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Operator password"
-          style={{ width: "100%", padding: 8, marginBottom: 8 }}
-          autoFocus
-        />
-        <button type="submit" disabled={busy} style={{ width: "100%", padding: 8 }}>
-          Log in
-        </button>
-      </form>
-      {error && <p style={{ color: "#f84" }}>{error}</p>}
+    <div style={{ background: "#111", color: "#eee", minHeight: "100vh" }}>
+      <div style={{ fontFamily: "monospace", maxWidth: 360, margin: "0 auto", paddingTop: "10vh" }}>
+        <h1>Patchline — Operator Login</h1>
+        <form onSubmit={submit}>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Operator password"
+            style={{ width: "100%", padding: 8, marginBottom: 8 }}
+            autoFocus
+          />
+          <button type="submit" disabled={busy} style={{ width: "100%", padding: 8 }}>
+            Log in
+          </button>
+        </form>
+        {error && <p style={{ color: "#f84" }}>{error}</p>}
+      </div>
     </div>
   );
 }

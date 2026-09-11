@@ -7,7 +7,7 @@ import { useDashboardLive } from "../../lib/useDashboardLive";
 import { apiPost } from "../../lib/api";
 
 const LINKS = [
-  { href: "/", label: "Reliability Overview" },
+  { href: "/dashboard", label: "Reliability Overview" },
   { href: "/sessions", label: "Live Sessions" },
   { href: "/regressions", label: "Regression Lab" },
   { href: "/configs", label: "Configurations" },

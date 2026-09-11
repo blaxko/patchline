@@ -34,7 +34,8 @@ export function CallUI() {
   const statusInfo = STATUS_DISPLAY[status];
 
   return (
-    <div style={{ fontFamily: "monospace", maxWidth: 640, margin: "2rem auto" }}>
+    <div style={{ background: "#111", color: "#eee", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "monospace", maxWidth: 640, margin: "0 auto", paddingTop: "2rem", paddingBottom: "2rem" }}>
       <h1>Patchline — Call UI</h1>
 
       <div
@@ -174,6 +175,7 @@ export function CallUI() {
             </div>
           ))}
       </div>
+    </div>
     </div>
   );
 }
