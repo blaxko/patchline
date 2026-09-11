@@ -1,0 +1,11 @@
+# Applies to both Railway services (each has Root Directory set to the repo
+# root, so both share this same setup phase). Without this, Railway's
+# Nixpacks build fell back to plain npm, which chokes on the "workspace:*"
+# protocol our internal packages (schemas, evaluation, commerce-sandbox) use
+# for each other — only pnpm understands that protocol. corepack (bundled
+# with Node 20+) reads package.json's "packageManager" field and activates
+# the exact pinned pnpm version, so `pnpm` resolves correctly regardless of
+# what the base image ships by default.
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+cmds = ["corepack enable"]
