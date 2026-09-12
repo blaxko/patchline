@@ -19,14 +19,25 @@
   --card-halo: #181826;
 
   background: var(--obsidian);
-  background-image:
-    radial-gradient(ellipse 900px 600px at 50% 100%, #000b35 0%, transparent 70%),
-    linear-gradient(195deg, #0a0010 0%, #02000a 45%, #0c1d32 100%);
-  background-attachment: fixed;
   color: var(--carbon-vellum);
   min-height: 100vh;
   font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Fixed behind all content, drifts at its own rate on scroll (see
+   ParallaxBackground.tsx) — separate from .page's own scroll so the
+   gradient moves at a different speed than the text, a restrained parallax
+   rather than the two ever being in lockstep. */
+.parallaxBg {
+  position: fixed;
+  inset: -10% 0 -10% 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 900px 600px at 50% 100%, #000b35 0%, transparent 70%),
+    linear-gradient(195deg, #0a0010 0%, #02000a 45%, #0c1d32 100%);
 }
 
 .midGradient {
@@ -95,15 +106,61 @@
   gap: 20px;
 }
 
+.navToggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.navToggleBar {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--carbon-vellum);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.navToggleBarOpenTop {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.navToggleBarOpenMiddle {
+  opacity: 0;
+}
+
+.navToggleBarOpenBottom {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.navMobilePanel {
+  display: none;
+}
+
 @media (max-width: 720px) {
-  .nav {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+  .navLinks {
+    display: none;
   }
-  .navLeft {
-    gap: 20px;
-    flex-wrap: wrap;
+  .navToggle {
+    display: flex;
+  }
+  .navMobilePanel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 clamp(20px, 5vw, 40px) 20px;
+    position: relative;
+    z-index: 10;
+  }
+  .navMobilePanel .ghostNavLink {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--charcoal);
   }
 }
 

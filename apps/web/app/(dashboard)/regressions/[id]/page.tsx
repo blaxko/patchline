@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { apiGet, apiPost, backendAuthedResourceUrl } from "../../../../lib/api";
+import { apiGet, apiPost, backendResourceUrl } from "../../../../lib/api";
 import { useDashboardLive } from "../../../../lib/useDashboardLive";
 import { RegressionCompare, type ReplayRunRow } from "../../../../components/dashboard/RegressionCompare";
 import styles from "../../../../components/dashboard/Dashboard.module.css";
@@ -89,7 +89,7 @@ export default function RegressionDetailPage() {
         originally heard <strong style={{ color: "#fcfcfc" }}>{detail.regression.observedValue}</strong> — truth source:{" "}
         {detail.regression.repairMethod}
       </p>
-      <audio controls src={backendAuthedResourceUrl(`/api/regressions/${params.id}/audio`)} style={{ marginBottom: 16, width: "100%" }} />
+      <audio controls src={backendResourceUrl(`/api/regressions/${params.id}/audio`)} style={{ marginBottom: 16, width: "100%" }} />
 
       <h2 className={styles.h2}>Replay against candidate configs</h2>
       <div style={{ marginBottom: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>

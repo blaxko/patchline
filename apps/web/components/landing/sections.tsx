@@ -1,13 +1,14 @@
 import Link from "next/link";
 import styles from "./Landing.module.css";
 import { MicButton } from "./MicButton";
+import { Reveal, RevealStagger, RevealStaggerItem } from "./Reveal";
 import { ListenIcon, VerifyIcon, RepairIcon, LearnIcon } from "./icons";
 
 export function Hero() {
   return (
     <section className={styles.section}>
       <div className={styles.hero}>
-        <div className={styles.heroLeft}>
+        <Reveal className={styles.heroLeft}>
           <p className={styles.eyebrow}>Voice agent reliability</p>
           <h1 className={styles.headlineDisplay}>Every word your voice agent hears is evidence.</h1>
           <p className={styles.subheadline}>
@@ -20,8 +21,8 @@ export function Hero() {
               See how it works
             </Link>
           </div>
-        </div>
-        <div className={styles.heroRight}>
+        </Reveal>
+        <Reveal className={styles.heroRight} delay={0.15}>
           <div className={styles.mockup}>
             <div className={styles.mockupHeader}>
               <span className={styles.mockupDot} />
@@ -57,7 +58,7 @@ export function Hero() {
               <span>Regression #018 created</span>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -81,20 +82,24 @@ const PROBLEMS = [
 export function Problem() {
   return (
     <section className={`${styles.section} ${styles.sectionCentered}`}>
-      <p className={styles.eyebrow}>The problem</p>
-      <h2 className={styles.headlineLg}>Speech is treated as fact. It shouldn&apos;t be.</h2>
-      <p className={styles.subheadline}>
-        Most voice agents receive a transcript and act on it immediately. If the transcription is
-        wrong, the rest of the system continues anyway — with false confidence.
-      </p>
-      <div className={styles.featureGrid}>
+      <Reveal>
+        <p className={styles.eyebrow}>The problem</p>
+        <h2 className={styles.headlineLg}>Speech is treated as fact. It shouldn&apos;t be.</h2>
+        <p className={styles.subheadline}>
+          Most voice agents receive a transcript and act on it immediately. If the transcription is
+          wrong, the rest of the system continues anyway — with false confidence.
+        </p>
+      </Reveal>
+      <RevealStagger className={styles.featureGrid}>
         {PROBLEMS.map((p) => (
-          <div key={p.title} className={styles.featureCol} style={{ textAlign: "center", alignItems: "center" }}>
-            <h3 className={styles.featureTitle}>{p.title}</h3>
-            <p className={styles.featureBody}>{p.body}</p>
-          </div>
+          <RevealStaggerItem key={p.title} className={styles.featureCol}>
+            <div style={{ textAlign: "center" }}>
+              <h3 className={styles.featureTitle}>{p.title}</h3>
+              <p className={styles.featureBody}>{p.body}</p>
+            </div>
+          </RevealStaggerItem>
         ))}
-      </div>
+      </RevealStagger>
     </section>
   );
 }
@@ -125,17 +130,19 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <section id="how-it-works" className={`${styles.section} ${styles.sectionCentered}`}>
-      <p className={styles.eyebrow}>How it works</p>
-      <h2 className={styles.headlineLg}>One reliability layer, four jobs.</h2>
-      <div className={styles.featureGrid} style={{ marginTop: 24 }}>
+      <Reveal>
+        <p className={styles.eyebrow}>How it works</p>
+        <h2 className={styles.headlineLg}>One reliability layer, four jobs.</h2>
+      </Reveal>
+      <RevealStagger className={styles.featureGrid} style={{ marginTop: 24 }}>
         {STEPS.map((step) => (
-          <div key={step.title} className={styles.featureCol}>
+          <RevealStaggerItem key={step.title} className={styles.featureCol}>
             <span className={styles.featureIcon}>{step.icon}</span>
             <h3 className={styles.featureTitle}>{step.title}</h3>
             <p className={styles.featureBody}>{step.body}</p>
-          </div>
+          </RevealStaggerItem>
         ))}
-      </div>
+      </RevealStagger>
     </section>
   );
 }
@@ -143,51 +150,55 @@ export function HowItWorks() {
 export function RegressionShowcase() {
   return (
     <section className={`${styles.section} ${styles.sectionCentered} ${styles.midGradient}`}>
-      <p className={styles.eyebrow}>The regression lab</p>
-      <h2 className={styles.headlineLg}>Every failure becomes a test it must pass — forever.</h2>
-      <p className={styles.subheadline}>
-        A recovered failure is replayed against candidate speech configurations. A config only gets
-        promoted once it passes the case that used to fail it, without breaking any case that already
-        passed.
-      </p>
-      <div className={styles.mockup} style={{ maxWidth: 560, textAlign: "left" }}>
-        <table className={styles.compareTable}>
-          <thead>
-            <tr>
-              <th>Config</th>
-              <th>Entity</th>
-              <th>Latency</th>
-              <th>Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Baseline</td>
-              <td>BRK-7109</td>
-              <td>412 ms</td>
-              <td className={styles.resultFail}>FAIL</td>
-            </tr>
-            <tr>
-              <td>Context v2</td>
-              <td>BRK-71Q9</td>
-              <td>438 ms</td>
-              <td className={styles.resultPass}>PASS</td>
-            </tr>
-            <tr>
-              <td>Keyterms v3</td>
-              <td>BRK-71Q9</td>
-              <td>421 ms</td>
-              <td className={styles.resultPass}>PASS</td>
-            </tr>
-            <tr>
-              <td>Combined v7</td>
-              <td>BRK-71Q9</td>
-              <td>429 ms</td>
-              <td className={styles.resultPass}>PASS</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Reveal>
+        <p className={styles.eyebrow}>The regression lab</p>
+        <h2 className={styles.headlineLg}>Every failure becomes a test it must pass — forever.</h2>
+        <p className={styles.subheadline}>
+          A recovered failure is replayed against candidate speech configurations. A config only gets
+          promoted once it passes the case that used to fail it, without breaking any case that already
+          passed.
+        </p>
+      </Reveal>
+      <Reveal delay={0.15}>
+        <div className={styles.mockup} style={{ maxWidth: 560, textAlign: "left" }}>
+          <table className={styles.compareTable}>
+            <thead>
+              <tr>
+                <th>Config</th>
+                <th>Entity</th>
+                <th>Latency</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Baseline</td>
+                <td>BRK-7109</td>
+                <td>412 ms</td>
+                <td className={styles.resultFail}>FAIL</td>
+              </tr>
+              <tr>
+                <td>Context v2</td>
+                <td>BRK-71Q9</td>
+                <td>438 ms</td>
+                <td className={styles.resultPass}>PASS</td>
+              </tr>
+              <tr>
+                <td>Keyterms v3</td>
+                <td>BRK-71Q9</td>
+                <td>421 ms</td>
+                <td className={styles.resultPass}>PASS</td>
+              </tr>
+              <tr>
+                <td>Combined v7</td>
+                <td>BRK-71Q9</td>
+                <td>429 ms</td>
+                <td className={styles.resultPass}>PASS</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Reveal>
     </section>
   );
 }
@@ -195,10 +206,12 @@ export function RegressionShowcase() {
 export function Close() {
   return (
     <section className={`${styles.section} ${styles.sectionCentered}`} style={{ paddingBottom: 40 }}>
-      <h2 className={styles.headlineLg}>Built for the calls that can&apos;t afford to be wrong.</h2>
-      <div className={styles.ctaRow} style={{ justifyContent: "center" }}>
-        <MicButton label="Try Patchline" href="/dashboard" />
-      </div>
+      <Reveal>
+        <h2 className={styles.headlineLg}>Built for the calls that can&apos;t afford to be wrong.</h2>
+        <div className={styles.ctaRow} style={{ justifyContent: "center" }}>
+          <MicButton label="Try Patchline" href="/dashboard" />
+        </div>
+      </Reveal>
     </section>
   );
 }
