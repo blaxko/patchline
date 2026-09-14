@@ -37,36 +37,38 @@ export default function LiveSessionsPage() {
   return (
     <div>
       <h1 className={styles.h1}>Live Sessions</h1>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Caller</th>
-            <th>Status</th>
-            <th>Mode</th>
-            <th>Config</th>
-            <th>Started</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sessions.map((s) => (
-            <tr key={s.id}>
-              <td>
-                <Link href={`/sessions/${s.id}`} className={styles.link}>
-                  {s.callerLabel}
-                </Link>
-              </td>
-              <td>
-                <span className={styles.badge} style={STATUS_COLOR[s.status] ?? {}}>
-                  {s.status}
-                </span>
-              </td>
-              <td>{s.mode}</td>
-              <td>{s.activeConfig.name}</td>
-              <td>{new Date(s.startedAt).toLocaleTimeString()}</td>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Caller</th>
+              <th>Status</th>
+              <th>Mode</th>
+              <th>Config</th>
+              <th>Started</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sessions.map((s) => (
+              <tr key={s.id}>
+                <td>
+                  <Link href={`/sessions/${s.id}`} className={styles.link}>
+                    {s.callerLabel}
+                  </Link>
+                </td>
+                <td>
+                  <span className={styles.badge} style={STATUS_COLOR[s.status] ?? {}}>
+                    {s.status}
+                  </span>
+                </td>
+                <td>{s.mode}</td>
+                <td>{s.activeConfig.name}</td>
+                <td>{new Date(s.startedAt).toLocaleTimeString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {sessions.length === 0 && <p className={styles.muted}>No sessions yet.</p>}
     </div>
   );

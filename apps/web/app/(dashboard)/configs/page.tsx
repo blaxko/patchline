@@ -56,34 +56,36 @@ export default function ConfigurationsPage() {
   return (
     <div>
       <h1 className={styles.h1}>Configuration Registry</h1>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Version</th>
-            <th>Speech model</th>
-            <th>Context mode</th>
-            <th>Status</th>
-            <th>Promoted by</th>
-          </tr>
-        </thead>
-        <tbody>
-          {configs.map((c) => (
-            <tr key={c.id}>
-              <td>{c.name}</td>
-              <td>v{c.version}</td>
-              <td>{c.speechModel}</td>
-              <td>{c.contextMode}</td>
-              <td>
-                <span className={styles.badge} style={STATUS_COLOR[c.status] ?? {}}>
-                  {c.status}
-                </span>
-              </td>
-              <td>{c.promotedBy ?? "—"}</td>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Version</th>
+              <th>Speech model</th>
+              <th>Context mode</th>
+              <th>Status</th>
+              <th>Promoted by</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {configs.map((c) => (
+              <tr key={c.id}>
+                <td>{c.name}</td>
+                <td>v{c.version}</td>
+                <td>{c.speechModel}</td>
+                <td>{c.contextMode}</td>
+                <td>
+                  <span className={styles.badge} style={STATUS_COLOR[c.status] ?? {}}>
+                    {c.status}
+                  </span>
+                </td>
+                <td>{c.promotedBy ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <button onClick={rollback} disabled={busy} className={`${styles.button} ${styles.buttonDanger}`} style={{ marginTop: 16 }}>
         Rollback active config

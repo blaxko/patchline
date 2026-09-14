@@ -173,9 +173,16 @@
 }
 
 /* ---------- Tables ---------- */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table {
   border-collapse: collapse;
   width: 100%;
+  min-width: 560px;
   font-size: 13px;
 }
 

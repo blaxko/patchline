@@ -37,38 +37,40 @@ export default function RegressionLabPage() {
   return (
     <div>
       <h1 className={styles.h1}>Regression Lab</h1>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Entity</th>
-            <th>Expected</th>
-            <th>Observed (bad)</th>
-            <th>Truth source</th>
-            <th>Status</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {regressions.map((r) => (
-            <tr key={r.id}>
-              <td>
-                <Link href={`/regressions/${r.id}`} className={styles.link}>
-                  {r.entityType}
-                </Link>
-              </td>
-              <td>{r.expectedValue}</td>
-              <td>{r.observedValue}</td>
-              <td>{r.repairMethod}</td>
-              <td>
-                <span className={styles.badge} style={STATUS_COLOR[r.status] ?? {}}>
-                  {r.status}
-                </span>
-              </td>
-              <td>{new Date(r.createdAt).toLocaleString()}</td>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Expected</th>
+              <th>Observed (bad)</th>
+              <th>Truth source</th>
+              <th>Status</th>
+              <th>Created</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {regressions.map((r) => (
+              <tr key={r.id}>
+                <td>
+                  <Link href={`/regressions/${r.id}`} className={styles.link}>
+                    {r.entityType}
+                  </Link>
+                </td>
+                <td>{r.expectedValue}</td>
+                <td>{r.observedValue}</td>
+                <td>{r.repairMethod}</td>
+                <td>
+                  <span className={styles.badge} style={STATUS_COLOR[r.status] ?? {}}>
+                    {r.status}
+                  </span>
+                </td>
+                <td>{new Date(r.createdAt).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {regressions.length === 0 && <p className={styles.muted}>No regressions yet — a recovered repair creates one automatically.</p>}
     </div>
   );
