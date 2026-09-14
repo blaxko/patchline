@@ -265,3 +265,14 @@ Checked the fixture's own script before re-verifying Call C's premise: `zxa_post
 ### Test suite after this round
 
 `packages/schemas`: 22/22 (was 20 -- +2 from the dash-optional/space-tolerant order-id regression tests). Backend mocked suite: 61/61, confirmed stable across 3 consecutive full runs (one transient failure each in `realtime.test.ts` then `demoCallC.test.ts` on separate runs, each reproduced as passing in isolation both times -- pre-existing full-suite-under-parallel-load flakiness, not caused by anything in this round; not yet root-caused, flagged here rather than silently ignored).
+
+## Correction, 2026-09-15: this file's own reconciled test counts are stale
+
+Every count above (157, 160, 61/61, 22/22 etc.) was accurate as of 2026-09-10, the last time this file was touched. It was never updated after that. Running every workspace's suite fresh just now (2026-09-15) gives **146 tests, all green** across the always-on suite: evaluation 15, schemas 22, web 5, commerce-sandbox 28, backend 47, root (event-coverage + adversarial) 29. The opt-in live suite (3 tests, real API keys required) is unaffected and untouched.
+
+The gap from this file's last-stated 157/160 down to the real current 146 is not test rot or an unexplained regression -- it is fully accounted for:
+
+- **Backend 61 -> 47 (-14)**: commit `0b42901` ("Remove operator login entirely...", 2026-09-11) deleted `services/backend/tests/integration/auth.test.ts` and `services/backend/tests/unit/session.test.ts` along with the operator-auth code they tested, which no longer exists in the app. That commit's own message states the new count directly ("47/47, down from 61 - the 14 deleted auth tests"). This was deliberate and correct -- you don't keep tests for code you removed -- it just never got reflected back into this file's own summary line, since this file wasn't part of that commit.
+- **Every other package matches or exceeds this file's last-recorded count** (schemas even went up, 20/22 as already documented two paragraphs above) -- there is no unexplained loss anywhere else.
+
+No code changes accompanied this correction -- this is a documentation-only fix so a reader of this file and a reader of the actual test suite see the same number.
