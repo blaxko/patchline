@@ -12,6 +12,10 @@
   --charcoal: #2a2a32;
   --iris-glow: #6199f6;
   --twilight: #4f4f80;
+  /* Same accent as the landing page's pill CTAs (Landing.module.css
+     --ember) — used only for the nav's own active/live indicators so this
+     surface reads as the same product family, not a full palette swap. */
+  --ember: #ff8a3d;
 
   background: var(--obsidian);
   background-image: radial-gradient(ellipse 1200px 800px at 10% -10%, #0e0f20 0%, #0c0c19 55%, #000000 100%);
@@ -44,34 +48,140 @@
   }
 }
 
-/* ---------- Nav ---------- */
-.nav {
+/* ---------- Nav: three separate floating glass elements (iOS
+   video-scrubber control look) instead of one connected bar — a circular
+   home button, a center pill page-switcher, a circular "more" button.
+   Same destinations/actions as before (Reliability Overview / Live
+   Sessions / Regression Lab / Configurations / Call UI, Reset Demo, the
+   live/reconnecting indicator) — only how they're grouped and presented
+   changed. Shared by the dashboard layout and CallUI so both surfaces get
+   the identical chrome. ---------- */
+.navRow {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px clamp(20px, 4vw, 40px);
-  border-bottom: 1px solid var(--charcoal);
-  font-size: 13px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px clamp(20px, 4vw, 40px) 0;
 }
 
-.navLogo {
-  font-weight: 600;
-  margin-right: 8px;
+.navGlass {
+  background: rgba(20, 20, 28, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   color: var(--carbon-vellum);
 }
 
-.navLink {
+.navCircle {
+  composes: navGlass;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.navCenterWrap {
+  position: relative;
+}
+
+.navPillCenter {
+  composes: navGlass;
+  border-radius: 999px;
+  padding: 11px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.navChevron {
+  color: var(--smoke);
+  transition: transform 0.15s ease;
+}
+
+.navChevronOpen {
+  transform: rotate(180deg);
+}
+
+.navRightWrap {
+  position: relative;
+  flex: none;
+}
+
+.navDropdownBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+}
+
+.navDropdown {
+  composes: navGlass;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 18px;
+  padding: 6px;
+  min-width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 21;
+}
+
+.navDropdownRight {
+  left: auto;
+  right: 0;
+  transform: none;
+  min-width: 200px;
+}
+
+.navDropdownItem {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
   color: var(--ash);
   text-decoration: none;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
 }
 
-.navLinkActive {
-  color: var(--iris-glow);
+.navDropdownItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--carbon-vellum);
 }
 
-.navSpacer {
-  margin-left: auto;
+.navDropdownItemActive {
+  color: var(--ember);
+}
+
+.navDropdownStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-family: var(--font-mono), monospace;
+  color: var(--smoke);
 }
 
 .liveDot {

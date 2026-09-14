@@ -1,206 +1,319 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./Landing.module.css";
-import { MicButton } from "./MicButton";
+import { LogoMark } from "./icons";
+import { apiGet } from "../../lib/api";
 import { Reveal, RevealStagger, RevealStaggerItem } from "./Reveal";
-import { ListenIcon, VerifyIcon, RepairIcon, LearnIcon, TwoAgentsGlyph } from "./icons";
+
+interface MetricsOverview {
+  critical_entity_accuracy: number | null;
+  unsafe_action_prevention_count: number;
+}
+
+function BlobField({ variant = "hero" }: { variant?: "hero" | "small" }) {
+  if (variant === "small") {
+    return (
+      <div className={styles.blob} style={{ position: "absolute", inset: 0, filter: "blur(30px)" }}>
+        <div className={`${styles.blob} ${styles.blobEmber}`} style={{ width: 140, height: 140, left: -20, top: -20 }} />
+        <div className={`${styles.blob} ${styles.blobTeal}`} style={{ width: 140, height: 140, left: 40, top: 0 }} />
+        <div className={`${styles.blob} ${styles.blobIndigo}`} style={{ width: 140, height: 140, right: -20, top: -10 }} />
+      </div>
+    );
+  }
+  return (
+    <div className={styles.blobField} aria-hidden>
+      <div className={`${styles.blob} ${styles.blobEmber}`} />
+      <div className={`${styles.blob} ${styles.blobTeal}`} />
+      <div className={`${styles.blob} ${styles.blobIndigo}`} />
+      <div className={`${styles.blob} ${styles.blobVioletSecondary}`} />
+    </div>
+  );
+}
+
+/** Real, live-verified numbers only (this file's own rule, carried over
+ * from the previous TrustRow: no fabricated stats). Two of the three come
+ * from GET /api/metrics/overview on the live backend; the test count is a
+ * build-time fact (last full local run: 146/146, see README.md), not
+ * something that endpoint reports, so it stays static text rather than
+ * pretending to be a live API value. */
+function useLiveStats() {
+  const [metrics, setMetrics] = useState<MetricsOverview | null>(null);
+
+  useEffect(() => {
+    apiGet<MetricsOverview>("/api/metrics/overview")
+      .then(setMetrics)
+      .catch(() => {});
+  }, []);
+
+  return metrics;
+}
+
+export function Nav({ menuOpen, onToggle }: { menuOpen: boolean; onToggle: () => void }) {
+  return (
+    <nav className={styles.nav}>
+      <div className={styles.navLeft}>
+        <Link href="/" className={styles.navLogoPill}>
+          <LogoMark />
+          <span className={styles.navLogoWordmark}>patchline</span>
+        </Link>
+        <div className={styles.navLinksPill}>
+          <Link href="#how-it-works" className={styles.navLink}>
+            how it works
+          </Link>
+          <Link href="/dashboard" className={styles.navLink}>
+            dashboard
+          </Link>
+          <a href="https://github.com/blaxko/patchline" className={styles.navLink}>
+            github
+          </a>
+        </div>
+      </div>
+      <div className={styles.navRight}>
+        <Link href="/dashboard" className={styles.navCta}>
+          Try Patchline
+        </Link>
+        <button
+          className={styles.navToggle}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={onToggle}
+        >
+          <span className={styles.navToggleBar} style={menuOpen ? { transform: "translateY(5.5px) rotate(45deg)" } : undefined} />
+          <span className={styles.navToggleBar} style={menuOpen ? { opacity: 0 } : undefined} />
+          <span className={styles.navToggleBar} style={menuOpen ? { transform: "translateY(-5.5px) rotate(-45deg)" } : undefined} />
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+export function NavMobilePanel({ onClose }: { onClose: () => void }) {
+  return (
+    <div className={styles.navMobilePanel}>
+      <Link href="#how-it-works" className={styles.navLink} onClick={onClose}>
+        how it works
+      </Link>
+      <Link href="/dashboard" className={styles.navLink} onClick={onClose}>
+        dashboard
+      </Link>
+      <a href="https://github.com/blaxko/patchline" className={styles.navLink} onClick={onClose}>
+        github
+      </a>
+    </div>
+  );
+}
+
+function StatCallout({
+  className,
+  value,
+  label,
+}: {
+  className: string;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className={`${styles.statCallout} ${className}`}>
+      <span className={styles.statValue}>{value}</span>
+      <span className={styles.statLabel}>{label}</span>
+    </div>
+  );
+}
 
 export function Hero() {
+  const metrics = useLiveStats();
+  const accuracy =
+    metrics?.critical_entity_accuracy != null ? `${Math.round(metrics.critical_entity_accuracy * 100)}%` : "—";
+  const blocked = metrics ? String(metrics.unsafe_action_prevention_count) : "—";
+
   return (
-    <section className={styles.section}>
-      <div className={styles.hero}>
-        <Reveal className={styles.heroLeft}>
-          <p className={styles.eyebrow}>Voice agent reliability</p>
-          <h1 className={styles.headlineDisplay}>Every word your voice agent hears is evidence.</h1>
-          <p className={styles.subheadline}>
-            Patchline verifies critical speech — order IDs, refund amounts, addresses — before it can
-            trigger a business action. When it&apos;s wrong, Patchline repairs it live instead of guessing.
-          </p>
-          <div className={styles.ctaRow} style={{ alignItems: "center" }}>
-            <MicButton label="Try it" href="/dashboard" />
-            <Link href="#how-it-works" className={styles.pillGhost}>
-              See how it works
-            </Link>
-          </div>
-        </Reveal>
-        <Reveal className={styles.heroRight} delay={0.15}>
-          <div className={styles.mockup}>
-            <div className={styles.mockupHeader}>
-              <span className={styles.mockupDot} />
-              <span className={styles.mockupDot} />
-              <span className={styles.mockupDot} />
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:18.2</span>
-              <span>Caller speaks order ID</span>
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:19.4</span>
-              <span className={styles.timelineHighlight}>Entity detected: BRK-7109</span>
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:19.6</span>
-              <span>Validation failed</span>
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:19.7</span>
-              <span>lookup_order blocked</span>
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:20.1</span>
-              <span>Repair question spoken</span>
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:23.5</span>
-              <span className={styles.timelineHighlight}>Entity verified: BRK-71Q9</span>
-            </div>
-            <div className={styles.timelineRow}>
-              <span className={styles.timelineTime}>00:24.0</span>
-              <span>Regression #018 created</span>
-            </div>
-          </div>
-        </Reveal>
+    <section className={styles.hero} id="top">
+      <BlobField />
+      <Reveal>
+        <h1 className={styles.heroHeadline}>
+          every word your
+          <br />
+          voice agent hears.
+        </h1>
+        <p className={styles.heroSubhead}>
+          Most voice agents trust the transcript. Patchline doesn&apos;t — it verifies every critical detail
+          against what&apos;s actually true before a single tool call fires.
+        </p>
+      </Reveal>
+
+      <RevealStagger>
+        <RevealStaggerItem>
+          <StatCallout className={styles.statA} value={accuracy} label="critical entity accuracy" />
+        </RevealStaggerItem>
+        <RevealStaggerItem>
+          <StatCallout className={styles.statB} value="146" label="tests, all green" />
+        </RevealStaggerItem>
+        <RevealStaggerItem>
+          <StatCallout className={styles.statC} value={blocked} label="unsafe actions blocked" />
+        </RevealStaggerItem>
+      </RevealStagger>
+
+      <div className={styles.statsMobileRow}>
+        <StatCallout className={styles.statA} value={accuracy} label="critical entity accuracy" />
+        <StatCallout className={styles.statB} value="146" label="tests, all green" />
+        <StatCallout className={styles.statC} value={blocked} label="unsafe actions blocked" />
       </div>
     </section>
   );
 }
 
-/** Real technology partners only (Section 3's own rule: no fabricated
- * logos) — AssemblyAI is the load-bearing speech provider, Groq runs both
- * agents' reasoning and TTS. Quiet text wordmarks, not graphic logos we
- * don't have rights to reproduce pixel-for-pixel. */
-export function TrustRow() {
+export function InteractivePill() {
   return (
-    <Reveal className={styles.trustRow}>
-      <span className={styles.trustLabel}>Built with</span>
-      <div className={styles.trustLogos}>
-        <span className={styles.trustLogo}>AssemblyAI</span>
-        <span className={styles.trustLogo}>Groq</span>
-      </div>
+    <div className={styles.interactiveWrap}>
+      <Reveal className={styles.interactivePill}>
+        <span className={styles.interactiveLabel}>
+          <span className={styles.interactiveDot} aria-hidden />
+          listening for the next misheard order ID
+        </span>
+        <Link href="/dashboard" className={styles.pillAmber}>
+          Try Patchline
+        </Link>
+      </Reveal>
+    </div>
+  );
+}
+
+export function SecondaryBlock() {
+  return (
+    <Reveal className={styles.secondary}>
+      <p className={styles.secondaryTagline}>Speech gets misheard. Patchline catches it before it costs you.</p>
+      <p className={styles.secondaryBody}>
+        A wrong order ID triggers the wrong lookup. A misheard digit turns a $18 refund into $80. Patchline
+        sits between your voice agent and every tool call it makes, blocking anything built on unverified
+        evidence — then asks one short question to fix it, live.
+      </p>
     </Reveal>
   );
 }
 
-export function TwoAgents() {
+export function LogoStrip() {
   return (
-    <section className={styles.section}>
-      <div className={styles.splitSection}>
-        <Reveal className={styles.splitText}>
-          <p className={styles.eyebrow}>How the call is staffed</p>
-          <h2 className={styles.headlineLg}>Two agents on every call. Only one talks.</h2>
-          <p className={styles.subheadline} style={{ margin: 0 }}>
-            Your support agent handles the conversation like normal. Patchline sits beside it,
-            silently — watching every entity it extracts, and stepping in only when something
-            needs to be checked before it can act.
-          </p>
-        </Reveal>
-        <Reveal className={styles.splitVisual} delay={0.15}>
-          <TwoAgentsGlyph />
-        </Reveal>
-      </div>
-    </section>
+    <RevealStagger className={styles.logoStrip}>
+      <RevealStaggerItem className={styles.logoCard}>
+        <span className={styles.logoCardText}>AssemblyAI</span>
+      </RevealStaggerItem>
+      <RevealStaggerItem className={styles.logoCard}>
+        <span className={styles.logoCardText}>Groq</span>
+      </RevealStaggerItem>
+    </RevealStagger>
   );
 }
 
-const PROBLEMS = [
-  {
-    title: "A wrong order ID",
-    body: "Triggers the wrong lookup — the caller gets someone else's order status.",
-  },
-  {
-    title: "A wrong refund amount",
-    body: "One misheard digit turns eighteen dollars into an eighty-dollar mistake.",
-  },
-  {
-    title: "A wrong shipping address",
-    body: "The package goes out — to the wrong place, on the agent's confidence alone.",
-  },
-];
-
-export function Problem() {
-  const [flagship, ...rest] = PROBLEMS;
+export function CTABanner() {
   return (
-    <section className={`${styles.section} ${styles.sectionCentered}`}>
-      <Reveal>
-        <p className={styles.eyebrow}>The problem</p>
-        <h2 className={styles.headlineLg}>Speech is treated as fact. It shouldn&apos;t be.</h2>
-        <p className={styles.subheadline}>
-          Most voice agents receive a transcript and act on it immediately. If the transcription is
-          wrong, the rest of the system continues anyway — with false confidence.
-        </p>
+    <div className={styles.ctaBanner}>
+      <Reveal className={styles.ctaBannerInner}>
+        <p className={styles.ctaBannerText}>Built for the calls that can&apos;t afford to be wrong.</p>
+        <Link href="/dashboard" className={styles.pillOutlineAmber}>
+          Try Patchline
+        </Link>
       </Reveal>
-      <RevealStagger className={styles.mixedGrid}>
-        <RevealStaggerItem className={styles.mixedCardLarge}>
-          <h3 className={styles.featureTitle}>{flagship.title}</h3>
-          <p className={styles.featureBody}>{flagship.body}</p>
-        </RevealStaggerItem>
-        {rest.map((p) => (
-          <RevealStaggerItem key={p.title} className={styles.mixedCardSmall}>
-            <h3 className={styles.featureTitle}>{p.title}</h3>
-            <p className={styles.featureBody}>{p.body}</p>
-          </RevealStaggerItem>
-        ))}
-      </RevealStagger>
-    </section>
+    </div>
   );
 }
 
-const STEPS = [
+const BENEFITS = [
   {
-    icon: <ListenIcon />,
     title: "Listen",
     body: "Patchline listens alongside your voice agent, in real time, on every call.",
   },
   {
-    icon: <VerifyIcon />,
     title: "Verify",
-    body: "Before any detail like a name, an order number, or an amount can trigger an action, it's checked against what's actually true.",
+    body: "Before any detail — a name, an order number, an amount — can trigger an action, it's checked against what's actually true. No LLM guesses in this path.",
+    withGlow: true,
   },
   {
-    icon: <RepairIcon />,
     title: "Repair",
     body: "If something's unclear, Patchline asks one short, specific question — never restarts the conversation, never guesses.",
   },
   {
-    icon: <LearnIcon />,
     title: "Learn",
     body: "Every mistake it catches becomes a permanent regression test, so the next call gets it right the first time.",
   },
 ];
 
-export function HowItWorks() {
+export function BenefitsGrid() {
   return (
-    <section id="how-it-works" className={`${styles.section} ${styles.sectionCentered}`}>
+    <div className={styles.benefits} id="how-it-works">
       <Reveal>
-        <p className={styles.eyebrow}>How it works</p>
-        <h2 className={styles.headlineLg}>One reliability layer, four jobs.</h2>
+        <h2 className={styles.benefitsHeading}>How Patchline stays reliable</h2>
       </Reveal>
-      <RevealStagger className={styles.featureGrid} style={{ marginTop: 24 }}>
-        {STEPS.map((step) => (
-          <RevealStaggerItem key={step.title} className={styles.featureCol}>
-            <span className={styles.featureIcon}>{step.icon}</span>
-            <h3 className={styles.featureTitle}>{step.title}</h3>
-            <p className={styles.featureBody}>{step.body}</p>
+      <RevealStagger className={styles.benefitsGrid}>
+        {BENEFITS.map((b) => (
+          <RevealStaggerItem
+            key={b.title}
+            className={`${styles.benefitCard} ${b.withGlow ? styles.benefitCardMiddle : styles.benefitCardTop}`}
+          >
+            {b.withGlow && (
+              <div className={styles.benefitGlow}>
+                <BlobField variant="small" />
+              </div>
+            )}
+            <h3 className={styles.benefitTitle}>{b.title}</h3>
+            <p className={styles.benefitBody}>{b.body}</p>
           </RevealStaggerItem>
         ))}
       </RevealStagger>
-    </section>
+    </div>
   );
 }
 
-export function RegressionShowcase() {
+/** Real events from a live, non-mocked run against this system's own
+ * production deployment (Call B2 in DEMO.md's script) — not a mockup of
+ * hypothetical behavior. AssemblyAI misheard "ZXA-4B8K" as "ZXA-4V8K";
+ * this is the actual recorded sequence that followed. */
+const EVIDENCE_TIMELINE = [
+  { label: "Entity detected", detail: "order_id ZXA-4V8K", highlight: false },
+  { label: "lookup_order blocked", detail: "reason: ENTITY_AMBIGUOUS", highlight: false },
+  { label: "Repair question spoken", detail: "“I heard Z-X-A-4-V-8-K — could you repeat the last four characters?”", highlight: false },
+  { label: "Caller repeats", detail: "“four B eight K”", highlight: false },
+  { label: "Entity verified", detail: "ZXA-4B8K", highlight: true },
+  { label: "lookup_order allowed", detail: "real order record returned", highlight: true },
+  { label: "Regression created", detail: "truth_source: caller_confirmation", highlight: false },
+];
+
+/** Real replay results from this same production deployment, not
+ * illustrative numbers: the same candidate config ("Keyterms + Agent
+ * Context") replayed against two different real recovered failures. It
+ * fixes one and not the other — and the promotion gate only approved it
+ * for the one it actually fixes, which is the entire point. */
+const REPLAY_ROWS = [
+  { config: "Keyterms + Agent Context", entity: "BRK-71Q9", latency: "9,614 ms", result: "FAIL" as const },
+  { config: "Keyterms + Agent Context", entity: "ZXA-4B8K", latency: "8,127 ms", result: "PASS" as const },
+];
+
+export function ProofSection() {
   return (
-    <section className={`${styles.section} ${styles.sectionCentered} ${styles.midGradient}`}>
+    <div className={styles.proof}>
       <Reveal>
-        <p className={styles.eyebrow}>The regression lab</p>
-        <h2 className={styles.headlineLg}>Every failure becomes a test it must pass — forever.</h2>
-        <p className={styles.subheadline}>
-          A recovered failure is replayed against candidate speech configurations. A config only gets
-          promoted once it passes the case that used to fail it, without breaking any case that already
-          passed.
+        <p className={styles.proofEyebrow}>The regression lab — real data</p>
+        <h2 className={styles.proofHeading}>Every failure becomes a test it must pass — forever.</h2>
+        <p className={styles.proofSubhead}>
+          Both panels below are from a real, non-mocked run against this system&apos;s own production
+          deployment — not a mockup. The same candidate configuration was replayed against two different
+          recovered failures: it fixed one and not the other, and the promotion gate only approved it for
+          the case it actually fixes.
         </p>
       </Reveal>
-      <Reveal delay={0.15}>
-        <div className={styles.mockup} style={{ maxWidth: 560, textAlign: "left" }}>
+      <RevealStagger className={styles.proofGrid}>
+        <RevealStaggerItem className={styles.proofCard}>
+          <p className={styles.proofCardTitle}>Evidence timeline — live repair</p>
+          {EVIDENCE_TIMELINE.map((row) => (
+            <div key={row.label} className={styles.proofTimelineRow}>
+              <span className={row.highlight ? styles.proofTimelineHighlight : undefined}>{row.label}:</span>
+              <span>{row.detail}</span>
+            </div>
+          ))}
+        </RevealStaggerItem>
+        <RevealStaggerItem className={styles.proofCard}>
+          <p className={styles.proofCardTitle}>Regression replay — same config, two outcomes</p>
           <table className={styles.compareTable}>
             <thead>
               <tr>
@@ -211,48 +324,23 @@ export function RegressionShowcase() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Baseline</td>
-                <td>BRK-7109</td>
-                <td>412 ms</td>
-                <td className={styles.resultFail}>FAIL</td>
-              </tr>
-              <tr>
-                <td>Context v2</td>
-                <td>BRK-71Q9</td>
-                <td>438 ms</td>
-                <td className={styles.resultPass}>PASS</td>
-              </tr>
-              <tr>
-                <td>Keyterms v3</td>
-                <td>BRK-71Q9</td>
-                <td>421 ms</td>
-                <td className={styles.resultPass}>PASS</td>
-              </tr>
-              <tr>
-                <td>Combined v7</td>
-                <td>BRK-71Q9</td>
-                <td>429 ms</td>
-                <td className={styles.resultPass}>PASS</td>
-              </tr>
+              {REPLAY_ROWS.map((row) => (
+                <tr key={row.entity}>
+                  <td>{row.config}</td>
+                  <td>{row.entity}</td>
+                  <td>{row.latency}</td>
+                  <td className={row.result === "PASS" ? styles.resultPass : styles.resultFail}>{row.result}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-export function Close() {
-  return (
-    <section className={`${styles.section} ${styles.sectionCentered}`} style={{ paddingBottom: 40 }}>
-      <Reveal>
-        <h2 className={styles.headlineLg}>Built for the calls that can&apos;t afford to be wrong.</h2>
-        <div className={styles.ctaRow} style={{ justifyContent: "center" }}>
-          <MicButton label="Try Patchline" href="/dashboard" />
-        </div>
-      </Reveal>
-    </section>
+          <p className={styles.proofFootnote}>
+            The BRK case still fails under this config and was correctly excluded from promotion. Only
+            the ZXA case — the one this config actually fixes — was promoted to production.
+          </p>
+        </RevealStaggerItem>
+      </RevealStagger>
+    </div>
   );
 }
 
@@ -260,7 +348,7 @@ export function Footer() {
   return (
     <footer className={styles.footer}>
       <span>Patchline — a self-healing reliability layer for production voice agents.</span>
-      <div className={styles.footerLinks}>
+      <div>
         <Link href="/dashboard">Try it</Link>
       </div>
     </footer>

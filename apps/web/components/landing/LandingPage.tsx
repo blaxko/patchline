@@ -1,76 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import styles from "./Landing.module.css";
-import { Hero, TrustRow, TwoAgents, Problem, HowItWorks, RegressionShowcase, Close, Footer } from "./sections";
-import { ParallaxBackground } from "./ParallaxBackground";
-
-const NAV_LINKS = [
-  { href: "#how-it-works", label: "How it works" },
-  { href: "/dashboard", label: "Reliability" },
-];
+import { Nav, NavMobilePanel, Hero, InteractivePill, SecondaryBlock, LogoStrip, CTABanner, BenefitsGrid, ProofSection, Footer } from "./sections";
 
 /**
- * Checkpoint 2: real scroll-triggered motion (Reveal/RevealStagger in
- * sections.tsx, parallax background here) on top of checkpoint 1's static
- * layout, plus a mobile hamburger nav — desktop keeps the always-visible
- * ghost links, which is the more premium/editorial choice at that width and
- * matches DESIGN.md's own nav pattern, so only mobile collapses.
+ * Checkpoint 3 (static): full rebuild against securify-ui-prompt.md — dark,
+ * pure-black ground, one abstract gradient blob as the sole color source,
+ * pill nav/buttons, floating stat callouts, mid-page interactive pill,
+ * benefits triptych. No scroll motion or blob drift yet — reviewing this
+ * static layout first before any animation pass, same process as the last
+ * two checkpoints.
  */
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className={styles.page}>
-      <ParallaxBackground />
-      <nav className={styles.nav}>
-        <div className={styles.navLeft}>
-          <Link href="/" className={styles.navLogo}>
-            Patchline
-          </Link>
-          <div className={styles.navLinks}>
-            {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className={styles.ghostNavLink}>
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className={styles.navRight}>
-          <Link href="/dashboard" className={`${styles.pillFilled} ${styles.pillFilledSm}`}>
-            Try it
-          </Link>
-          <button
-            className={styles.navToggle}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <span className={`${styles.navToggleBar} ${menuOpen ? styles.navToggleBarOpenTop : ""}`} />
-            <span className={`${styles.navToggleBar} ${menuOpen ? styles.navToggleBarOpenMiddle : ""}`} />
-            <span className={`${styles.navToggleBar} ${menuOpen ? styles.navToggleBarOpenBottom : ""}`} />
-          </button>
-        </div>
-      </nav>
-
-      {menuOpen && (
-        <div className={styles.navMobilePanel}>
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={styles.ghostNavLink} onClick={() => setMenuOpen(false)}>
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      )}
+      <Nav menuOpen={menuOpen} onToggle={() => setMenuOpen((v) => !v)} />
+      {menuOpen && <NavMobilePanel onClose={() => setMenuOpen(false)} />}
 
       <Hero />
-      <TrustRow />
-      <TwoAgents />
-      <Problem />
-      <HowItWorks />
-      <RegressionShowcase />
-      <Close />
+      <InteractivePill />
+      <SecondaryBlock />
+      <LogoStrip />
+      <BenefitsGrid />
+      <ProofSection />
+      <CTABanner />
       <Footer />
     </div>
   );

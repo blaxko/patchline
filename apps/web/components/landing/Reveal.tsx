@@ -78,6 +78,17 @@ export function RevealStagger({ children, className, style }: RevealProps) {
 }
 
 export function RevealStaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {
+  const reducedMotion = usePrefersReducedMotion();
+
+  // Bug fix: this only ever animates via variant state inherited from its
+  // RevealStagger parent's motion.div context. RevealStagger correctly
+  // bails to a plain <div> under reduced motion, but that removes the
+  // context this relies on — leaving every item permanently stuck showing
+  // its "hidden" variant (opacity: 0) with no parent left to ever tell it
+  // to animate to "show". Needs its own bailout, independent of the
+  // parent's.
+  if (reducedMotion) return <div className={className}>{children}</div>;
+
   return (
     <motion.div className={className} variants={riseVariants}>
       {children}

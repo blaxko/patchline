@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useVoiceSession, type CallStatus } from "../lib/useVoiceSession";
 import styles from "./dashboard/Dashboard.module.css";
+import { Nav } from "./dashboard/Nav";
 
 // PRD.md §9 Step 15: clip picker (Live Mic / demo clips, matching
 // fixtures/audio/demo/manifest.json). "" means live mic. Kept as a static
@@ -36,6 +37,7 @@ export function CallUI() {
 
   return (
     <div className={styles.shell}>
+      <Nav />
       <div className={styles.content} style={{ maxWidth: 640 }}>
         <h1 className={styles.h1}>Patchline — Call UI</h1>
 

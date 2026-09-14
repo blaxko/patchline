@@ -73,6 +73,20 @@ export function TwoAgentsGlyph({ className }: { className?: string }) {
   );
 }
 
+/** Small nav logo mark: a gate/checkpoint glyph (evidence passing through a
+ * gap) rather than a generic abstract swirl — the same "verify before it
+ * passes" motif as the rest of the page, just small enough for the nav
+ * pill. */
+export function LogoMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 12h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M15 12h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="9" y="6" width="6" height="12" rx="2" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
 export function ShieldIcon() {
   return (
     <svg {...common}>
