@@ -11,9 +11,16 @@ A self-healing reliability layer for production voice agents. Every failed voice
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — repo layout, physical topology, local bootstrap, commands.
 - [`SECURITY.md`](SECURITY.md) · [`TESTING.md`](TESTING.md) · [`DEMO.md`](DEMO.md) · [`TASKS.md`](TASKS.md)
 
+## Live demo
+
+- **App**: https://illustrious-laughter-production.up.railway.app
+- **API**: https://patchline-production.up.railway.app
+
+Both are deployed on Railway and verified end-to-end (landing page, dashboard, and a real call session connecting over WebSocket to real AssemblyAI), including on mobile.
+
 ## Status
 
-All 15 build steps in `PRD.md` §9 are implemented and tested — see `TASKS.md` for per-step detail (what was built, test results, manual verification, and honestly-flagged limitations). Two build-environment limitations apply throughout: no live `ASSEMBLYAI_API_KEY`/`GROQ_API_KEY` was available while building this, so the full reliability pipeline is proven against a mocked AssemblyAI server (per `TESTING.md`'s own CI-determinism design) rather than a live account, and the demo/adversarial audio fixtures are silent placeholders rather than real synthesized speech. The mechanism itself — extraction, gating, repair, regression capture, replay, promotion, the dashboard, and demo mode — is real, tested, and verified live against the running server throughout.
+All 15 build steps in `PRD.md` §9 are implemented and tested — see `TASKS.md` for per-step detail (what was built, test results, manual verification, and honestly-flagged limitations). The full reliability pipeline is proven primarily against a mocked AssemblyAI server (per `TESTING.md`'s own CI-determinism design), and is additionally verified in multiple rounds directly against a real, non-mocked AssemblyAI account and a real Groq account — including finding and fixing a real wire-format bug in `keyterms_prompt` that had silently prevented any keyterms-mode session from ever connecting (`DECISIONS.md` D2), and a full live walk of the block → repair → regression → replay → promotion → first-pass-success loop end to end (`TASKS.md`, "Live re-verification" rounds 1–3). The demo/adversarial audio fixtures are synthesized via TTS rather than real human recordings. The mechanism itself — extraction, gating, repair, regression capture, replay, promotion, the dashboard, and demo mode — is real, tested, and verified live against both the mocked and the real running services.
 
 ## Stack (see `DECISIONS.md` for why)
 
