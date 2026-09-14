@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import styles from "./Landing.module.css";
-import { Nav, NavMobilePanel, Hero, InteractivePill, SecondaryBlock, LogoStrip, CTABanner, BenefitsGrid, ProofSection, Footer } from "./sections";
+import { Nav, NavMobilePanel, Hero, InteractivePill, SecondaryBlock, CTABanner, BenefitsGrid, ProofSection, Footer } from "./sections";
 
 /**
  * Checkpoint 3 (static): full rebuild against securify-ui-prompt.md — dark,
@@ -23,7 +23,6 @@ export function LandingPage() {
       <Hero />
       <InteractivePill />
       <SecondaryBlock />
-      <LogoStrip />
       <BenefitsGrid />
       <ProofSection />
       <CTABanner />

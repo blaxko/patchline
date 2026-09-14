@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./Landing.module.css";
 import { LogoMark } from "./icons";
-import { apiGet } from "../../lib/api";
 import { Reveal, RevealStagger, RevealStaggerItem } from "./Reveal";
-
-interface MetricsOverview {
-  critical_entity_accuracy: number | null;
-  unsafe_action_prevention_count: number;
-}
 
 function BlobField({ variant = "hero" }: { variant?: "hero" | "small" }) {
   if (variant === "small") {
@@ -30,24 +23,6 @@ function BlobField({ variant = "hero" }: { variant?: "hero" | "small" }) {
       <div className={`${styles.blob} ${styles.blobVioletSecondary}`} />
     </div>
   );
-}
-
-/** Real, live-verified numbers only (this file's own rule, carried over
- * from the previous TrustRow: no fabricated stats). Two of the three come
- * from GET /api/metrics/overview on the live backend; the test count is a
- * build-time fact (last full local run: 146/146, see README.md), not
- * something that endpoint reports, so it stays static text rather than
- * pretending to be a live API value. */
-function useLiveStats() {
-  const [metrics, setMetrics] = useState<MetricsOverview | null>(null);
-
-  useEffect(() => {
-    apiGet<MetricsOverview>("/api/metrics/overview")
-      .then(setMetrics)
-      .catch(() => {});
-  }, []);
-
-  return metrics;
 }
 
 export function Nav({ menuOpen, onToggle }: { menuOpen: boolean; onToggle: () => void }) {
@@ -71,9 +46,7 @@ export function Nav({ menuOpen, onToggle }: { menuOpen: boolean; onToggle: () =>
         </div>
       </div>
       <div className={styles.navRight}>
-        <Link href="/dashboard" className={styles.navCta}>
-          Try Patchline
-        </Link>
+        <span className={styles.navWordmark}>PATCHLINE</span>
         <button
           className={styles.navToggle}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -105,29 +78,7 @@ export function NavMobilePanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-function StatCallout({
-  className,
-  value,
-  label,
-}: {
-  className: string;
-  value: string;
-  label: string;
-}) {
-  return (
-    <div className={`${styles.statCallout} ${className}`}>
-      <span className={styles.statValue}>{value}</span>
-      <span className={styles.statLabel}>{label}</span>
-    </div>
-  );
-}
-
 export function Hero() {
-  const metrics = useLiveStats();
-  const accuracy =
-    metrics?.critical_entity_accuracy != null ? `${Math.round(metrics.critical_entity_accuracy * 100)}%` : "—";
-  const blocked = metrics ? String(metrics.unsafe_action_prevention_count) : "—";
-
   return (
     <section className={styles.hero} id="top">
       <BlobField />
@@ -141,25 +92,11 @@ export function Hero() {
           Most voice agents trust the transcript. Patchline doesn&apos;t — it verifies every critical detail
           against what&apos;s actually true before a single tool call fires.
         </p>
+        <p className={styles.heroExplainer}>
+          Patchline&apos;s job: catch what your voice agent misheard, check it against what&apos;s actually
+          true, and fix it before a wrong detail becomes a wrong action.
+        </p>
       </Reveal>
-
-      <RevealStagger>
-        <RevealStaggerItem>
-          <StatCallout className={styles.statA} value={accuracy} label="critical entity accuracy" />
-        </RevealStaggerItem>
-        <RevealStaggerItem>
-          <StatCallout className={styles.statB} value="146" label="tests, all green" />
-        </RevealStaggerItem>
-        <RevealStaggerItem>
-          <StatCallout className={styles.statC} value={blocked} label="unsafe actions blocked" />
-        </RevealStaggerItem>
-      </RevealStagger>
-
-      <div className={styles.statsMobileRow}>
-        <StatCallout className={styles.statA} value={accuracy} label="critical entity accuracy" />
-        <StatCallout className={styles.statB} value="146" label="tests, all green" />
-        <StatCallout className={styles.statC} value={blocked} label="unsafe actions blocked" />
-      </div>
     </section>
   );
 }
@@ -190,19 +127,6 @@ export function SecondaryBlock() {
         evidence — then asks one short question to fix it, live.
       </p>
     </Reveal>
-  );
-}
-
-export function LogoStrip() {
-  return (
-    <RevealStagger className={styles.logoStrip}>
-      <RevealStaggerItem className={styles.logoCard}>
-        <span className={styles.logoCardText}>AssemblyAI</span>
-      </RevealStaggerItem>
-      <RevealStaggerItem className={styles.logoCard}>
-        <span className={styles.logoCardText}>Groq</span>
-      </RevealStaggerItem>
-    </RevealStagger>
   );
 }
 
@@ -348,9 +272,6 @@ export function Footer() {
   return (
     <footer className={styles.footer}>
       <span>Patchline — a self-healing reliability layer for production voice agents.</span>
-      <div>
-        <Link href="/dashboard">Try it</Link>
-      </div>
     </footer>
   );
 }
