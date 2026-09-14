@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "./Landing.module.css";
 import { MicButton } from "./MicButton";
 import { Reveal, RevealStagger, RevealStaggerItem } from "./Reveal";
-import { ListenIcon, VerifyIcon, RepairIcon, LearnIcon } from "./icons";
+import { ListenIcon, VerifyIcon, RepairIcon, LearnIcon, TwoAgentsGlyph } from "./icons";
 
 export function Hero() {
   return (
@@ -64,6 +64,43 @@ export function Hero() {
   );
 }
 
+/** Real technology partners only (Section 3's own rule: no fabricated
+ * logos) — AssemblyAI is the load-bearing speech provider, Groq runs both
+ * agents' reasoning and TTS. Quiet text wordmarks, not graphic logos we
+ * don't have rights to reproduce pixel-for-pixel. */
+export function TrustRow() {
+  return (
+    <Reveal className={styles.trustRow}>
+      <span className={styles.trustLabel}>Built with</span>
+      <div className={styles.trustLogos}>
+        <span className={styles.trustLogo}>AssemblyAI</span>
+        <span className={styles.trustLogo}>Groq</span>
+      </div>
+    </Reveal>
+  );
+}
+
+export function TwoAgents() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.splitSection}>
+        <Reveal className={styles.splitText}>
+          <p className={styles.eyebrow}>How the call is staffed</p>
+          <h2 className={styles.headlineLg}>Two agents on every call. Only one talks.</h2>
+          <p className={styles.subheadline} style={{ margin: 0 }}>
+            Your support agent handles the conversation like normal. Patchline sits beside it,
+            silently — watching every entity it extracts, and stepping in only when something
+            needs to be checked before it can act.
+          </p>
+        </Reveal>
+        <Reveal className={styles.splitVisual} delay={0.15}>
+          <TwoAgentsGlyph />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 const PROBLEMS = [
   {
     title: "A wrong order ID",
@@ -80,6 +117,7 @@ const PROBLEMS = [
 ];
 
 export function Problem() {
+  const [flagship, ...rest] = PROBLEMS;
   return (
     <section className={`${styles.section} ${styles.sectionCentered}`}>
       <Reveal>
@@ -90,13 +128,15 @@ export function Problem() {
           wrong, the rest of the system continues anyway — with false confidence.
         </p>
       </Reveal>
-      <RevealStagger className={styles.featureGrid}>
-        {PROBLEMS.map((p) => (
-          <RevealStaggerItem key={p.title} className={styles.featureCol}>
-            <div style={{ textAlign: "center" }}>
-              <h3 className={styles.featureTitle}>{p.title}</h3>
-              <p className={styles.featureBody}>{p.body}</p>
-            </div>
+      <RevealStagger className={styles.mixedGrid}>
+        <RevealStaggerItem className={styles.mixedCardLarge}>
+          <h3 className={styles.featureTitle}>{flagship.title}</h3>
+          <p className={styles.featureBody}>{flagship.body}</p>
+        </RevealStaggerItem>
+        {rest.map((p) => (
+          <RevealStaggerItem key={p.title} className={styles.mixedCardSmall}>
+            <h3 className={styles.featureTitle}>{p.title}</h3>
+            <p className={styles.featureBody}>{p.body}</p>
           </RevealStaggerItem>
         ))}
       </RevealStagger>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import styles from "./Landing.module.css";
-import { Hero, Problem, HowItWorks, RegressionShowcase, Close, Footer } from "./sections";
+import { Hero, TrustRow, TwoAgents, Problem, HowItWorks, RegressionShowcase, Close, Footer } from "./sections";
 import { ParallaxBackground } from "./ParallaxBackground";
 
 const NAV_LINKS = [
@@ -65,6 +65,8 @@ export function LandingPage() {
       )}
 
       <Hero />
+      <TrustRow />
+      <TwoAgents />
       <Problem />
       <HowItWorks />
       <RegressionShowcase />

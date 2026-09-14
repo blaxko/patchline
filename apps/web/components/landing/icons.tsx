@@ -52,6 +52,27 @@ export function LearnIcon() {
   );
 }
 
+/**
+ * Abstract illustration for the split "two agents" section — deliberately
+ * not a literal robot/headset/human figure (Section 4 of the layout brief:
+ * "simple SVG/line-art or abstract gradient shapes, not photorealistic 3D
+ * renders"). Two overlapping nodes (the support agent and the reliability
+ * supervisor watching it) inside a loose orbit, same thin-stroke language
+ * as the small icons above, just larger.
+ */
+export function TwoAgentsGlyph({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="140" cy="140" r="110" stroke="var(--charcoal)" strokeWidth="1.5" strokeDasharray="3 8" />
+      <circle cx="112" cy="130" r="52" stroke="var(--twilight)" strokeWidth="1.5" fill="rgba(79, 79, 128, 0.08)" />
+      <circle cx="176" cy="158" r="34" stroke="var(--iris-glow)" strokeWidth="1.5" fill="rgba(97, 153, 246, 0.08)" />
+      <path d="M138 140 168 155" stroke="var(--iris-glow)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 6" />
+      <circle cx="138" cy="140" r="3" fill="var(--carbon-vellum)" />
+      <circle cx="176" cy="158" r="3" fill="var(--iris-glow)" />
+    </svg>
+  );
+}
+
 export function ShieldIcon() {
   return (
     <svg {...common}>
